@@ -195,8 +195,159 @@ bool ObjectDetector::recognizeDog(const cv::Mat &in_image, const ros::Time &in_t
 }
 
 // TODO: Implement similar methods for other objects
-// HERE
+bool ObjectDetector::recognizeBarrel(const cv::Mat &in_image, const ros::Time &in_timestamp,
+                                  const double& robot_x, const double& robot_y, const double& robot_theta,
+                                  cdt_msgs::Object &out_new_object)
+{
+    // The values below will be filled by the following functions
+    double obj_image_center_x;
+    double obj_image_center_y;
+    double obj_image_height;
+    double obj_image_width;
 
+    // TODO: the functions we use below should be filled to make this work
+    cv::Mat in_image_red = applyColourFilter(in_image, Colour::YELLOW);
+    cv::Mat in_image_bounding_box = applyBoundingBox(in_image_red, obj_image_center_x, obj_image_center_y, obj_image_width, obj_image_height);
+
+    // Note: Almost everything below should be kept as it is
+
+    // We convert the image position in pixels into "real" coordinates in the camera frame
+    // We use the intrinsics to compute the depth
+    double depth = barrel_real_height_ / obj_image_height * camera_fy_;
+
+    // We now back-project the center using the  pinhole camera model
+    // The result is in camera coordinates. Camera coordinates are weird, see note below
+    double obj_position_camera_x = depth / camera_fx_ * (obj_image_center_x - camera_cx_);
+    double obj_position_camera_y = depth / camera_fy_ * (obj_image_center_y - camera_cy_);
+    double obj_position_camera_z = depth;
+
+
+    // Camera coordinates are different to robot and fixed frame coordinates
+    // Robot and fixed frame are x forward, y left and z upward
+    // Camera coordinates are x right, y downward, z forward
+    // robot x -> camera  z
+    // robot y -> camera -x
+    // robot z -> camera -y
+    // They follow x-red, y-green and z-blue in both cases though
+
+    double obj_position_base_x = (camera_extrinsic_x_ +  obj_position_camera_z);
+    double obj_position_base_y = (camera_extrinsic_y_ + -obj_position_camera_x);
+
+    // We need to be careful when computing the final position of the object in global (fixed frame) coordinates
+    // We need to introduce a correction givne by the robot orientation
+    // Fill message
+    out_new_object.id = "barrel";
+    out_new_object.header.stamp = in_timestamp;
+    out_new_object.header.frame_id = fixed_frame_;
+    out_new_object.position.x = robot_x +  cos(robot_theta)*obj_position_base_x + sin(-robot_theta) * obj_position_base_y;
+    out_new_object.position.y = robot_y +  sin(robot_theta)*obj_position_base_x + cos(robot_theta) * obj_position_base_y;
+    out_new_object.position.z = 0.0     + camera_extrinsic_z_ + -obj_position_camera_y;
+
+    return std::isfinite(depth);
+}
+
+bool ObjectDetector::recognizeBarrow(const cv::Mat &in_image, const ros::Time &in_timestamp,
+                                     const double& robot_x, const double& robot_y, const double& robot_theta,
+                                     cdt_msgs::Object &out_new_object)
+{
+    // The values below will be filled by the following functions
+    double obj_image_center_x;
+    double obj_image_center_y;
+    double obj_image_height;
+    double obj_image_width;
+
+    // TODO: the functions we use below should be filled to make this work
+    cv::Mat in_image_red = applyColourFilter(in_image, Colour::GREEN);
+    cv::Mat in_image_bounding_box = applyBoundingBox(in_image_red, obj_image_center_x, obj_image_center_y, obj_image_width, obj_image_height);
+
+    // Note: Almost everything below should be kept as it is
+
+    // We convert the image position in pixels into "real" coordinates in the camera frame
+    // We use the intrinsics to compute the depth
+    double depth = barrow_real_height_ / obj_image_height * camera_fy_;
+
+    // We now back-project the center using the  pinhole camera model
+    // The result is in camera coordinates. Camera coordinates are weird, see note below
+    double obj_position_camera_x = depth / camera_fx_ * (obj_image_center_x - camera_cx_);
+    double obj_position_camera_y = depth / camera_fy_ * (obj_image_center_y - camera_cy_);
+    double obj_position_camera_z = depth;
+
+
+    // Camera coordinates are different to robot and fixed frame coordinates
+    // Robot and fixed frame are x forward, y left and z upward
+    // Camera coordinates are x right, y downward, z forward
+    // robot x -> camera  z
+    // robot y -> camera -x
+    // robot z -> camera -y
+    // They follow x-red, y-green and z-blue in both cases though
+
+    double obj_position_base_x = (camera_extrinsic_x_ +  obj_position_camera_z);
+    double obj_position_base_y = (camera_extrinsic_y_ + -obj_position_camera_x);
+
+    // We need to be careful when computing the final position of the object in global (fixed frame) coordinates
+    // We need to introduce a correction givne by the robot orientation
+    // Fill message
+    out_new_object.id = "barrow";
+    out_new_object.header.stamp = in_timestamp;
+    out_new_object.header.frame_id = fixed_frame_;
+    out_new_object.position.x = robot_x +  cos(robot_theta)*obj_position_base_x + sin(-robot_theta) * obj_position_base_y;
+    out_new_object.position.y = robot_y +  sin(robot_theta)*obj_position_base_x + cos(robot_theta) * obj_position_base_y;
+    out_new_object.position.z = 0.0     + camera_extrinsic_z_ + -obj_position_camera_y;
+
+    return std::isfinite(depth);
+}
+
+
+bool ObjectDetector::recognizeComputer(const cv::Mat &in_image, const ros::Time &in_timestamp,
+                                     const double& robot_x, const double& robot_y, const double& robot_theta,
+                                     cdt_msgs::Object &out_new_object)
+{
+    // The values below will be filled by the following functions
+    double obj_image_center_x;
+    double obj_image_center_y;
+    double obj_image_height;
+    double obj_image_width;
+
+    // TODO: the functions we use below should be filled to make this work
+    cv::Mat in_image_red = applyColourFilter(in_image, Colour::BLUE);
+    cv::Mat in_image_bounding_box = applyBoundingBox(in_image_red, obj_image_center_x, obj_image_center_y, obj_image_width, obj_image_height);
+
+    // Note: Almost everything below should be kept as it is
+
+    // We convert the image position in pixels into "real" coordinates in the camera frame
+    // We use the intrinsics to compute the depth
+    double depth = computer_real_height_ / obj_image_height * camera_fy_;
+
+    // We now back-project the center using the  pinhole camera model
+    // The result is in camera coordinates. Camera coordinates are weird, see note below
+    double obj_position_camera_x = depth / camera_fx_ * (obj_image_center_x - camera_cx_);
+    double obj_position_camera_y = depth / camera_fy_ * (obj_image_center_y - camera_cy_);
+    double obj_position_camera_z = depth;
+
+
+    // Camera coordinates are different to robot and fixed frame coordinates
+    // Robot and fixed frame are x forward, y left and z upward
+    // Camera coordinates are x right, y downward, z forward
+    // robot x -> camera  z
+    // robot y -> camera -x
+    // robot z -> camera -y
+    // They follow x-red, y-green and z-blue in both cases though
+
+    double obj_position_base_x = (camera_extrinsic_x_ +  obj_position_camera_z);
+    double obj_position_base_y = (camera_extrinsic_y_ + -obj_position_camera_x);
+
+    // We need to be careful when computing the final position of the object in global (fixed frame) coordinates
+    // We need to introduce a correction givne by the robot orientation
+    // Fill message
+    out_new_object.id = "computer";
+    out_new_object.header.stamp = in_timestamp;
+    out_new_object.header.frame_id = fixed_frame_;
+    out_new_object.position.x = robot_x +  cos(robot_theta)*obj_position_base_x + sin(-robot_theta) * obj_position_base_y;
+    out_new_object.position.y = robot_y +  sin(robot_theta)*obj_position_base_x + cos(robot_theta) * obj_position_base_y;
+    out_new_object.position.z = 0.0     + camera_extrinsic_z_ + -obj_position_camera_y;
+
+    return std::isfinite(depth);
+}
 
 
 // Utils
