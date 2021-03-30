@@ -54,7 +54,7 @@ In your home directory, run the following:
 ```sh
 mkdir git
 cd git
-git clone git@github.com:ori-drs/cdt_challenge_2021.git
+git clone git@github.com:pierreosselin/cdt_challenge_2021.git
 ```
 
 # Basic software installation
