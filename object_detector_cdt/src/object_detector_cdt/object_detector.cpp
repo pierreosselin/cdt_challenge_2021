@@ -109,13 +109,13 @@ cv::Mat ObjectDetector::applyColourFilter(const cv::Mat &in_image_bgr, const Col
     // The output should be a binary mask indicating where the object of a given color is located
     cv::Mat mask;
     if (colour == Colour::RED) {
-        inRange(in_image_bgr, cv::Scalar(  0,  0,  0), cv::Scalar( 255, 255, 255), mask);
+        inRange(in_image_bgr, cv::Scalar(  0,  0,  160), cv::Scalar( 80, 80, 255), mask);
     } else if (colour == Colour::YELLOW) {
-        inRange(in_image_bgr, cv::Scalar(  0,  0,  0), cv::Scalar( 255, 255, 255), mask);
+        inRange(in_image_bgr, cv::Scalar(  0,  160,  160), cv::Scalar( 80, 255, 255), mask);
     } else if (colour == Colour::GREEN) {
-        inRange(in_image_bgr, cv::Scalar(  0,  0,  0), cv::Scalar( 255, 255, 255), mask);
+        inRange(in_image_bgr, cv::Scalar(  0,  160,  0), cv::Scalar( 80, 255, 80), mask);
     } else if (colour == Colour::BLUE) {
-        inRange(in_image_bgr, cv::Scalar(  0,  0,  0), cv::Scalar( 255, 255, 255), mask);
+        inRange(in_image_bgr, cv::Scalar(  160,  0,  0), cv::Scalar( 255, 80, 80), mask);
     } else {
         // Report color not implemented
         ROS_ERROR_STREAM("[ObjectDetector::colourFilter] colour (" << colour << "  not implemented!");
