@@ -96,7 +96,7 @@ void ObjectDetector::convertMessageToImage(const sensor_msgs::ImageConstPtr &in_
 {
     // Convert Image message to cv::Mat using cv_bridge
     out_image = cv_bridge::toCvShare(in_msg, "bgr8")->image;
-
+    bool result = cv::imwrite("/home/cdt2021/Desktop/real_image_debug_file.png", out_image);
     // Extract timestamp from header
     out_timestamp = in_msg->header.stamp;
 }
@@ -109,9 +109,11 @@ cv::Mat ObjectDetector::applyColourFilter(const cv::Mat &in_image_bgr, const Col
     // The output should be a binary mask indicating where the object of a given color is located
     cv::Mat mask;
     if (colour == Colour::RED) {
-        inRange(in_image_bgr, cv::Scalar(  0,  0,  160), cv::Scalar( 80, 80, 255), mask);
+        //inRange(in_image_bgr, cv::Scalar(  0,  0,  160), cv::Scalar( 80, 80, 255), mask);
+        inRange(in_image_bgr, cv::Scalar(  0,  0,  80), cv::Scalar( 120, 120, 255), mask);
     } else if (colour == Colour::YELLOW) {
-        inRange(in_image_bgr, cv::Scalar(  0,  160,  160), cv::Scalar( 80, 255, 255), mask);
+        //inRange(in_image_bgr, cv::Scalar(  0,  160,  160), cv::Scalar( 80, 255, 255), mask);
+        inRange(in_image_bgr, cv::Scalar(  0,  0,  120), cv::Scalar( 120, 120, 255), mask);
     } else if (colour == Colour::GREEN) {
         inRange(in_image_bgr, cv::Scalar(  0,  160,  0), cv::Scalar( 80, 255, 80), mask);
     } else if (colour == Colour::BLUE) {
@@ -131,15 +133,29 @@ cv::Mat ObjectDetector::applyBoundingBox(const cv::Mat1b &in_mask, double &x, do
 
     // TODO: Compute the bounding box using the mask
     // You need to return the center of the object in image coordinates, as well as a bounding box indicating its height and width (in pixels)
-
-    cv::Rect Min_Rect
-    Min_Rect = cv::boundingRect(in_mask)
-    x = Min_Rect.width/2 + Min_Rect.x;
-    y = Min_Rect.height/2 + Min_Rect.y;
+    cv::Rect Min_Rect = cv::boundingRect(in_mask);
+    x = (Min_Rect.width)/2 + (Min_Rect.x);
+    y = (Min_Rect.height)/2 + Min_Rect.y;
     width = Min_Rect.width;
     height = Min_Rect.height;
-    cv::imwrite("./image_debug_file.jpg", *in_mask);
 
+    bool result;
+    try
+    {
+        result = cv::imwrite("/home/cdt2021/Desktop/image_debug_file.png", in_mask);
+    }
+    catch (const cv::Exception& ex)
+    {
+        fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
+    }
+
+    if (!result) {
+      std::cout << "What is happening here";
+    }
+    else {
+
+      std::cout << "Saved and image";
+    }
     return drawing;
 }
 
