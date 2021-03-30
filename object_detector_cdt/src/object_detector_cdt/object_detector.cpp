@@ -25,10 +25,10 @@ ObjectDetector::ObjectDetector(ros::NodeHandle &nh)
     camera_cy_ = 240.5;
 
     // Real heights of objects
-    barrel_real_height_     = 1.2;   // meters 
-    barrow_real_height_     = 0.7;   // meters, note: includes the wheel and frame 
-    computer_real_height_   = 0.5;   // meters 
-    dog_real_height_        = 0.418; // meters, note: includes legs 
+    barrel_real_height_     = 1.2;   // meters
+    barrow_real_height_     = 0.7;   // meters, note: includes the wheel and frame
+    computer_real_height_   = 0.5;   // meters
+    dog_real_height_        = 0.418; // meters, note: includes legs
 }
 
 void ObjectDetector::readParameters(ros::NodeHandle &nh)
@@ -51,7 +51,7 @@ void ObjectDetector::readParameters(ros::NodeHandle &nh)
     {
         ROS_ERROR("Could not read parameter `goal_frame`.");
         exit(-1);
-    }   
+    }
 
     // output topic is optional. It will use '/detected_objects' by default
     nh.param("output_objects_topic", output_objects_topic_, std::string("/detected_objects"));
@@ -74,7 +74,7 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
     // Recognize object
     // Dog
     // TODO: This only publishes the first time we detect the dog
-    if(!wasObjectDetected("dog")) // TODO: implement a better check
+    //if(!wasObjectDetected("dog")) // TODO: implement a better check
     {
         cdt_msgs::Object new_object;
         bool valid_object = recognizeDog(image, timestamp, x, y, theta, new_object);
@@ -131,15 +131,19 @@ cv::Mat ObjectDetector::applyBoundingBox(const cv::Mat1b &in_mask, double &x, do
 
     // TODO: Compute the bounding box using the mask
     // You need to return the center of the object in image coordinates, as well as a bounding box indicating its height and width (in pixels)
-    x = 0;
-    y = 0;
-    width = 30;
-    height = 50;
+
+    cv::Rect Min_Rect
+    Min_Rect = cv::boundingRect(in_mask)
+    x = Min_Rect.width/2 + Min_Rect.x;
+    y = Min_Rect.height/2 + Min_Rect.y;
+    width = Min_Rect.width;
+    height = Min_Rect.height;
+    cv::imwrite("./image_debug_file.jpg", *in_mask);
 
     return drawing;
 }
 
-bool ObjectDetector::recognizeDog(const cv::Mat &in_image, const ros::Time &in_timestamp, 
+bool ObjectDetector::recognizeDog(const cv::Mat &in_image, const ros::Time &in_timestamp,
                                   const double& robot_x, const double& robot_y, const double& robot_theta,
                                   cdt_msgs::Object &out_new_object)
 {
@@ -169,14 +173,14 @@ bool ObjectDetector::recognizeDog(const cv::Mat &in_image, const ros::Time &in_t
     // Camera coordinates are different to robot and fixed frame coordinates
     // Robot and fixed frame are x forward, y left and z upward
     // Camera coordinates are x right, y downward, z forward
-    // robot x -> camera  z 
+    // robot x -> camera  z
     // robot y -> camera -x
     // robot z -> camera -y
     // They follow x-red, y-green and z-blue in both cases though
-    
+
     double dog_position_base_x = (camera_extrinsic_x_ +  dog_position_camera_z);
     double dog_position_base_y = (camera_extrinsic_y_ + -dog_position_camera_x);
-    
+
     // We need to be careful when computing the final position of the object in global (fixed frame) coordinates
     // We need to introduce a correction givne by the robot orientation
     // Fill message

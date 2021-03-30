@@ -19,6 +19,8 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
+// Add open cv processing
+#include <opencv2/imgproc.hpp>
 #include <iostream>
 
 // Colours
@@ -59,7 +61,7 @@ class ObjectDetector
 
     // Objects' heights
     double barrel_real_height_, barrow_real_height_, computer_real_height_, dog_real_height_;
-    
+
 public:
     // Constructor
     ObjectDetector(ros::NodeHandle &nh);
@@ -81,11 +83,11 @@ private:
     cv::Mat applyBoundingBox(const cv::Mat1b &in_mask, double &x, double &y, double &width, double &height);
 
     // Implements the procedures to recognize objects
-    bool recognizeDog(const cv::Mat &in_image, const ros::Time &in_timestamp, 
+    bool recognizeDog(const cv::Mat &in_image, const ros::Time &in_timestamp,
                       const double& robot_x, const double& robot_y, const double& robot_theta,
                       cdt_msgs::Object &out_new_object);
 
-    
+
     // Utils
     void getRobotPose(double &x, double &y, double &theta);
     bool wasObjectDetected(std::string object_name);
