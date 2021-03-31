@@ -76,6 +76,8 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
     // Dog
     // TODO: This only publishes the first time we detect the dog
     // TODO: Add other objects here
+
+    /*
     if(!wasObjectDetected("dog")) // TODO: implement a better check
     {
         cdt_msgs::Object new_object;
@@ -87,6 +89,7 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
             detected_objects_.objects.push_back(new_object);
         }
     }
+
     if(!wasObjectDetected("barrel")) // TODO: implement a better check
     {
         cdt_msgs::Object new_object;
@@ -98,6 +101,7 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
             detected_objects_.objects.push_back(new_object);
         }
     }
+    */
     if(!wasObjectDetected("barrow")) // TODO: implement a better check
     {
         cdt_msgs::Object new_object;
@@ -109,6 +113,7 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
             detected_objects_.objects.push_back(new_object);
         }
     }
+    /*
     if(!wasObjectDetected("computer")) // TODO: implement a better check
     {
         cdt_msgs::Object new_object;
@@ -120,7 +125,7 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
             detected_objects_.objects.push_back(new_object);
         }
     }
-
+    */
     // Publish list of objects detected so far
     objects_pub_.publish(detected_objects_);
 }
@@ -162,6 +167,17 @@ cv::Mat ObjectDetector::applyColourFilter(const cv::Mat &in_image_bgr, const Col
         // Report color not implemented
         ROS_ERROR_STREAM("[ObjectDetector::colourFilter] colour (" << colour << "  not implemented!");
     }
+
+    // Apply morphological operationOpening:
+    bool result = cv::imwrite("/home/cdt2021/Desktop/mask_before_morphology.png", mask);
+
+    cv::Mat element = cv::getStructuringElement( 0, cv::Size( 3, 3 ));
+    cv::morphologyEx( mask, mask, 3, element);
+    //cv::morphologyEx( mask, mask, 2, element);
+    result = cv::imwrite("/home/cdt2021/Desktop/mask_after_morphology.png", mask);
+
+
+    ///
 
     // We return the mask, that will be used later
     return mask;

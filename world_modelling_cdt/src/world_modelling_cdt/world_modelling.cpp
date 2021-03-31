@@ -117,7 +117,7 @@ bool WorldModelling::updateGraph(const float &x, const float &y, const float &th
         new_node.pose.position.x = x;
         new_node.pose.position.y = y;
         new_node.id.data = num_nodes_; // The id is simply the number of the node
-        
+
         // Adding neighbors
         std_msgs::Int32 neighbor_id;
         const float neighborhood_tol = 5.0;
