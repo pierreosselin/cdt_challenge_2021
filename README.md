@@ -122,3 +122,10 @@ roslaunch jackal_runtime_cdt launch_all.launch
 ```
 
 This will launch Gazebo (without the GUI), Rviz with a basic visualization, and a joystick interface. You should be able to see the lidar scans as well as the lidar elevation map. If you drive the robot with the joystick, the elevation map should be filled in as you go.
+
+# Debug Object detector
+
+```sh
+roslaunch jackal_runtime_cdt launch_all.launch full:=false
+roslaunch object_detector_cdt object_detector.launch
+```
