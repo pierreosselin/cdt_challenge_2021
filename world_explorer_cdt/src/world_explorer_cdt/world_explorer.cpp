@@ -1,4 +1,5 @@
 #include <world_explorer_cdt/world_explorer.h>
+#include <math.h>
 
 WorldExplorer::WorldExplorer(ros::NodeHandle &nh)
 {
@@ -20,6 +21,7 @@ WorldExplorer::WorldExplorer(ros::NodeHandle &nh)
     explore_serv_ = nh.advertiseService("start_stop_world_explorer", &WorldExplorer::toggleExploration, this);
 
     // Execute main loop
+    std::cout << "Starting WorldExplorer::run()\n";
     run();
 }
 
@@ -145,6 +147,21 @@ void WorldExplorer::run()
 
 }
 
+double WorldExplorer::frontierDist(Eigen::Vector2d frontier_point){
+    // Heuristic for identifying best frontier point to explore
+
+    // Ondrej's ideas for various levels of sophistication:
+    // Level 0: Euclidean distance
+    //     Problem: Ignores walls -> can lead to iterative exploration of points on opposite sides of a wall
+    // Level 1: If euclidean distance is much shorter than the distance predicted by the local planner, check options
+    // Level 2: Explore primarily frontiers near large unexplored regions
+
+
+    // First MVP - Euclidean distance to the point
+    double dist = sqrt((frontier_point - robot_pos).squaredNorm());
+    return dist;
+}
+
 void WorldExplorer::plan()
 {
     // We only run the planning if there are frontiers available
@@ -156,13 +173,28 @@ void WorldExplorer::plan()
         // Get current position
         double robot_x, robot_y, robot_theta;
         getRobotPose2D(robot_x, robot_y, robot_theta);
+        robot_pos << robot_x, robot_y;
         
         // Analyze and sort frontiers
         std::vector<Eigen::Vector2d> goals = local_planner_.searchFrontiers(frontiers_, robot_x, robot_y, robot_theta);
 
         // TODO Choose a frontier, work it off if it is valid and send it to the position controller
         // here we just use the first one as an example
-        Eigen::Vector2d pose_goal = goals.at(0);
+
+        std::vector<double> distances(frontiers_.frontiers.size());
+        int i=0;
+        std::cout << "Frontier points:\n";
+        for (auto &frontier_point : goals){
+            distances[i++] = frontierDist(frontier_point);
+            std::cout << frontier_point;
+            std::cout << "\n";
+            std::cout << "Distance: ";
+            std::cout << distances[i-1];
+            std::cout << "\n";
+        }
+
+//        Eigen::Vector2d pose_goal = goals.at(0);
+        Eigen::Vector2d pose_goal = goals.at(std::distance(distances.begin(),std::min_element(distances.begin(), distances.end())));
 
         // Local Planner (RRT)
         // TODO Plan a route to the most suitable frontier
@@ -171,7 +203,7 @@ void WorldExplorer::plan()
         // some more reasoning to be done here....
 
         // TODO Graph Planner
-        graph_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
+//        graph_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
 
         // If we have route targets (frontiers), work them off and send to position controller
         if(route_.size() > 0)

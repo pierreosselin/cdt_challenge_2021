@@ -72,6 +72,8 @@ class WorldExplorer
     double planning_time_ = 0.5;
     double path_execute_limit_ = 100.0;
 
+    Eigen::Vector2d robot_pos;
+
     bool start_exploring_ = false;
     bool received_frontiers_ = false;
     bool received_trav_map_ = false;
@@ -102,6 +104,7 @@ private:
     void frontiersCallback(const cdt_msgs::Frontiers& in_frontiers);
     void graphCallback(const cdt_msgs::Graph& in_graph);
     void positionCtrlCallback(const std_msgs::Float32& in_status);
+    double frontierDist(const Eigen::Vector2d frontier_point);
 
     // Main loop
     void run();
