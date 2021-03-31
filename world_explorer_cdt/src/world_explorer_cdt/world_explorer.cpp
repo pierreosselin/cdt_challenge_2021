@@ -181,20 +181,20 @@ void WorldExplorer::plan()
         // TODO Choose a frontier, work it off if it is valid and send it to the position controller
         // here we just use the first one as an example
 
-        std::vector<double> distances(frontiers_.frontiers.size());
-        int i=0;
-        std::cout << "Frontier points:\n";
-        for (auto &frontier_point : goals){
-            distances[i++] = frontierDist(frontier_point);
-            std::cout << frontier_point;
-            std::cout << "\n";
-            std::cout << "Distance: ";
-            std::cout << distances[i-1];
-            std::cout << "\n";
-        }
+//        std::vector<double> distances(frontiers_.frontiers.size());
+//        int i=0;
+//        std::cout << "Frontier points:\n";
+//        for (auto &frontier_point : goals){
+//            distances[i++] = frontierDist(frontier_point);
+//            std::cout << frontier_point;
+//            std::cout << "\n";
+//            std::cout << "Distance: ";
+//            std::cout << distances[i-1];
+//            std::cout << "\n";
+//        }
+//        Eigen::Vector2d pose_goal = goals.at(std::distance(distances.begin(),std::min_element(distances.begin(), distances.end())));
 
-//        Eigen::Vector2d pose_goal = goals.at(0);
-        Eigen::Vector2d pose_goal = goals.at(std::distance(distances.begin(),std::min_element(distances.begin(), distances.end())));
+        Eigen::Vector2d pose_goal = goals.at(0);
 
         // Local Planner (RRT)
         // TODO Plan a route to the most suitable frontier
