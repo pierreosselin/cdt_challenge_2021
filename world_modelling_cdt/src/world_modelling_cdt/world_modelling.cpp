@@ -96,10 +96,15 @@ bool WorldModelling::updateGraph(const float &x, const float &y, const float &th
     // TODO: you need to update the exploration_graph_ using the current pose
 
     // You may need to change this flag with some conditions
-    bool create_new_node = true;
-
-    // if the condition is satisfied, you should create a new node and add it to the graph
-    if(first_node_)
+    bool create_new_node = first_node_;
+    for(auto node : exploration_graph_.nodes){
+        const float tol = 1.0;
+        auto position = node.pose.position;
+        float dist = ((position.x - x) * (position.x - x)) + ((position.y - y) * (position.y - y));
+        create_new_node = create_new_node || (dist > tol);
+    }
+    // or the condition is satisfied, you should create a new node and add it to the graph
+    if(create_new_node)
     {
         // Here we briefly show how to fill the data
         cdt_msgs::GraphNode new_node;

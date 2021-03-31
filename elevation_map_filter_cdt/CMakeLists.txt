@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(elevation_map_filter_cdt)
 
 set(CMAKE_CXX_STANDARD 11)
-add_compile_options(-Wall -Wextra -Wpedantic)
+add_compile_options(-Wall -Wextra -Wpedantic -lpthread)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ## Find catkin macros and libraries
