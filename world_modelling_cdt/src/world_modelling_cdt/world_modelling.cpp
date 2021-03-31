@@ -97,12 +97,18 @@ bool WorldModelling::updateGraph(const float &x, const float &y, const float &th
 
     // You may need to change this flag with some conditions
     bool create_new_node = first_node_;
+
+    // If we're at least tol away from all nodes, create a new node.
+    bool are_we_far_away = true;
     for(auto node : exploration_graph_.nodes){
-        const float tol = 1.0;
+        const float tol = 2.0;
         auto position = node.pose.position;
-        float dist = ((position.x - x) * (position.x - x)) + ((position.y - y) * (position.y - y));
-        create_new_node = create_new_node || (dist > tol);
+        float dist = std::hypot(position.x - x, position.y - y);
+        if(dist < tol){
+            are_we_far_away = false;
+        }
     }
+    create_new_node = create_new_node || are_we_far_away;
     // or the condition is satisfied, you should create a new node and add it to the graph
     if(create_new_node)
     {
@@ -114,9 +120,18 @@ bool WorldModelling::updateGraph(const float &x, const float &y, const float &th
 
         // Adding neighbors
         std_msgs::Int32 neighbor_id;
-        neighbor_id.data = 0;
-        new_node.neighbors_id.push_back(neighbor_id);  // here we fill the neighbors of the new_node
-
+        const float neighborhood_tol = 5.0;
+        //use auto & as we modify the node
+        for(auto &node: exploration_graph_.nodes){
+            auto position = node.pose.position;
+            float dist = std::hypot(position.x - x, position.y - y);
+//            float dist = ((position.x - x) * (position.x - x)) + ((position.y - y) * (position.y - y));
+            if(dist < neighborhood_tol || first_node_){
+            neighbor_id.data = node.id.data;
+            new_node.neighbors_id.push_back(neighbor_id);  // here we fill the neighbors of the new_node
+            node.neighbors_id.push_back(new_node.id);
+            }
+        }
         // Finally add the new node to the graph (since all the properties are filled)
         exploration_graph_.nodes.push_back(new_node);
 
@@ -148,16 +163,17 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map)
     for (grid_map::GridMapIterator iterator(traversability_); !iterator.isPastEnd(); ++iterator)
     {
         // We only want to use the valid values
-        if (traversability_.isValid(*iterator, "elevation"))
-        {
+        if (traversability_.isValid(*iterator, "elevation")) {
 
             // TODO Fill the traversability at each position using some criterion based on the other layers
             // How can we figure out if an area is traversable or not?
             // YOu should fill with a 1.0 if it's traversable, and -1.0 in the other case
-            if(traversability_.at("elevation",*iterator)>0.5){
+            if (traversability_.at("elevation", *iterator) > 0.5) {
                 traversability_.at("traversability", *iterator) = 1.0;
+            } else {
+                traversability_.at("traversability", *iterator) = -1.0;
+
             }
-            traversability_.at("traversability", *iterator) = -1.0;
         }
     }
 
@@ -170,7 +186,8 @@ void WorldModelling::findCurrentFrontiers(const float &x, const float &y, const 
     // They're used to guide robot to new places
 
     // If the direction needs a frontier, create one and store in current frontiers
-    if (first_frontier_)
+    bool is_new_frontier = first_frontier_;
+    if (is_new_frontier)
     {
         // We create the frontier as a stamped point
 

@@ -77,7 +77,7 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
     // TODO: This only publishes the first time we detect the dog
     // TODO: Add other objects here
 
-    /*
+
     if(!wasObjectDetected("dog")) // TODO: implement a better check
     {
         cdt_msgs::Object new_object;
@@ -101,7 +101,7 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
             detected_objects_.objects.push_back(new_object);
         }
     }
-    */
+
     if(!wasObjectDetected("barrow")) // TODO: implement a better check
     {
         cdt_msgs::Object new_object;
@@ -113,7 +113,7 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
             detected_objects_.objects.push_back(new_object);
         }
     }
-    /*
+
     if(!wasObjectDetected("computer")) // TODO: implement a better check
     {
         cdt_msgs::Object new_object;
@@ -125,7 +125,7 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
             detected_objects_.objects.push_back(new_object);
         }
     }
-    */
+    
     // Publish list of objects detected so far
     objects_pub_.publish(detected_objects_);
 }
