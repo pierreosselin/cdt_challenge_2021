@@ -71,13 +71,14 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
     // Convert message to OpenCV image
     convertMessageToImage(in_msg, image, timestamp);
 
+    //image
     // Recognize object
     // Dog
     // TODO: This only publishes the first time we detect the dog
     //if(!wasObjectDetected("dog")) // TODO: implement a better check
     {
         cdt_msgs::Object new_object;
-        bool valid_object = recognizeDog(image, timestamp, x, y, theta, new_object);
+        bool valid_object = recognizeComputer(image, timestamp, x, y, theta, new_object);
 
         // If recognized, add to list of detected objects
         if (valid_object)
@@ -113,18 +114,18 @@ cv::Mat ObjectDetector::applyColourFilter(const cv::Mat &in_image_bgr, const Col
     //std::cout << "Value in the midddle";
     //std::cout << in_image_bgr.at<double>(rows/2,cols/2);
 
-    std::cout << "M = " << std::endl << " "  << in_image_bgr << std::endl << std::endl;
+    //std::cout << "M = " << std::endl << " "  << in_image_bgr << std::endl << std::endl;
 
     if (colour == Colour::RED) {
         //inRange(in_image_bgr, cv::Scalar(  0,  0,  160), cv::Scalar( 80, 80, 255), mask);
-        cv::inRange(in_image_bgr, cv::Scalar(  0,  0,  40), cv::Scalar( 50, 50, 255), mask);
+        cv::inRange(in_image_bgr, cv::Scalar(  0,  0,  40), cv::Scalar( 30, 30, 255), mask);
     } else if (colour == Colour::YELLOW) {
         //inRange(in_image_bgr, cv::Scalar(  0,  160,  160), cv::Scalar( 80, 255, 255), mask);
-        cv::inRange(in_image_bgr, cv::Scalar(  0,  0,  40), cv::Scalar( 50, 50, 255), mask);
+        cv::inRange(in_image_bgr, cv::Scalar(  0,  40,  40), cv::Scalar( 30, 255, 255), mask);
     } else if (colour == Colour::GREEN) {
-        cv::inRange(in_image_bgr, cv::Scalar(  0,  160,  0), cv::Scalar( 80, 255, 80), mask);
+        cv::inRange(in_image_bgr, cv::Scalar(  0,  40,  0), cv::Scalar( 30, 255, 30), mask);
     } else if (colour == Colour::BLUE) {
-        cv::inRange(in_image_bgr, cv::Scalar(  160,  0,  0), cv::Scalar( 255, 80, 80), mask);
+        cv::inRange(in_image_bgr, cv::Scalar(  40,  0,  0), cv::Scalar( 255, 30, 30), mask);
     } else {
         // Report color not implemented
         ROS_ERROR_STREAM("[ObjectDetector::colourFilter] colour (" << colour << "  not implemented!");
@@ -136,11 +137,15 @@ cv::Mat ObjectDetector::applyColourFilter(const cv::Mat &in_image_bgr, const Col
 
 cv::Mat ObjectDetector::applyBoundingBox(const cv::Mat1b &in_mask, double &x, double &y, double &width, double &height) {
 
-    cv::Mat drawing; // it could be useful to fill this image if you want to debug
+    cv::Mat drawing = in_mask.clone();
+    //cv::Mat(in_mask.rows,in_mask.cols, CV_64F, cvScalar(0.)); // it could be useful to fill this image if you want to debug
 
     // TODO: Compute the bounding box using the mask
     // You need to return the center of the object in image coordinates, as well as a bounding box indicating its height and width (in pixels)
     cv::Rect Min_Rect = cv::boundingRect(in_mask);
+    cv::rectangle(drawing, Min_Rect,(255,255,255));
+
+
     x = (Min_Rect.width)/2 + (Min_Rect.x);
     y = (Min_Rect.height)/2 + Min_Rect.y;
     width = Min_Rect.width;
@@ -149,7 +154,7 @@ cv::Mat ObjectDetector::applyBoundingBox(const cv::Mat1b &in_mask, double &x, do
     bool result;
     try
     {
-        result = cv::imwrite("/home/cdt2021/Desktop/image_debug_file.png", in_mask);
+        result = cv::imwrite("/home/cdt2021/Desktop/image_debug_box_file.png", drawing);
     }
     catch (const cv::Exception& ex)
     {
