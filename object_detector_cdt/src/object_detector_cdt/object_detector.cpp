@@ -75,7 +75,41 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
     // Recognize object
     // Dog
     // TODO: This only publishes the first time we detect the dog
-    //if(!wasObjectDetected("dog")) // TODO: implement a better check
+    // TODO: Add other objects here
+    if(!wasObjectDetected("dog")) // TODO: implement a better check
+    {
+        cdt_msgs::Object new_object;
+        bool valid_object = recognizeDog(image, timestamp, x, y, theta, new_object);
+
+        // If recognized, add to list of detected objects
+        if (valid_object)
+        {
+            detected_objects_.objects.push_back(new_object);
+        }
+    }
+    if(!wasObjectDetected("barrel")) // TODO: implement a better check
+    {
+        cdt_msgs::Object new_object;
+        bool valid_object = recognizeBarrel(image, timestamp, x, y, theta, new_object);
+
+        // If recognized, add to list of detected objects
+        if (valid_object)
+        {
+            detected_objects_.objects.push_back(new_object);
+        }
+    }
+    if(!wasObjectDetected("barrow")) // TODO: implement a better check
+    {
+        cdt_msgs::Object new_object;
+        bool valid_object = recognizeBarrow(image, timestamp, x, y, theta, new_object);
+
+        // If recognized, add to list of detected objects
+        if (valid_object)
+        {
+            detected_objects_.objects.push_back(new_object);
+        }
+    }
+    if(!wasObjectDetected("computer")) // TODO: implement a better check
     {
         cdt_msgs::Object new_object;
         bool valid_object = recognizeComputer(image, timestamp, x, y, theta, new_object);
@@ -86,8 +120,6 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
             detected_objects_.objects.push_back(new_object);
         }
     }
-    // TODO: Add other objects here
-
 
     // Publish list of objects detected so far
     objects_pub_.publish(detected_objects_);
@@ -187,6 +219,11 @@ bool ObjectDetector::recognizeDog(const cv::Mat &in_image, const ros::Time &in_t
     // We use the intrinsics to compute the depth
     double depth = dog_real_height_ / dog_image_height * camera_fy_;
 
+    if (depth > 3) {
+
+      return false;
+    }
+
     // We now back-project the center using the  pinhole camera model
     // The result is in camera coordinates. Camera coordinates are weird, see note below
     double dog_position_camera_x = depth / camera_fx_ * (dog_image_center_x - camera_cx_);
@@ -238,6 +275,10 @@ bool ObjectDetector::recognizeBarrel(const cv::Mat &in_image, const ros::Time &i
     // We convert the image position in pixels into "real" coordinates in the camera frame
     // We use the intrinsics to compute the depth
     double depth = barrel_real_height_ / obj_image_height * camera_fy_;
+    if (depth > 3) {
+
+      return false;
+    }
 
     // We now back-project the center using the  pinhole camera model
     // The result is in camera coordinates. Camera coordinates are weird, see note below
@@ -289,6 +330,11 @@ bool ObjectDetector::recognizeBarrow(const cv::Mat &in_image, const ros::Time &i
     // We convert the image position in pixels into "real" coordinates in the camera frame
     // We use the intrinsics to compute the depth
     double depth = barrow_real_height_ / obj_image_height * camera_fy_;
+
+    if (depth > 3) {
+
+      return false;
+    }
 
     // We now back-project the center using the  pinhole camera model
     // The result is in camera coordinates. Camera coordinates are weird, see note below
@@ -342,6 +388,11 @@ bool ObjectDetector::recognizeComputer(const cv::Mat &in_image, const ros::Time 
     // We use the intrinsics to compute the depth
     double depth = computer_real_height_ / obj_image_height * camera_fy_;
 
+    if (depth > 3) {
+
+      return false;
+    }
+
     // We now back-project the center using the  pinhole camera model
     // The result is in camera coordinates. Camera coordinates are weird, see note below
     double obj_position_camera_x = depth / camera_fx_ * (obj_image_center_x - camera_cx_);
@@ -370,6 +421,7 @@ bool ObjectDetector::recognizeComputer(const cv::Mat &in_image, const ros::Time 
     out_new_object.position.y = robot_y +  sin(robot_theta)*obj_position_base_x + cos(robot_theta) * obj_position_base_y;
     out_new_object.position.z = 0.0     + camera_extrinsic_z_ + -obj_position_camera_y;
 
+    //std::cout << "Final Position Computer" << out_new_object.position.x << " " << out_new_object.position.y << " " << out_new_object.position.z << "Finish";
     return std::isfinite(depth);
 }
 

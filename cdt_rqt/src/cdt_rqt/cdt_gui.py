@@ -113,11 +113,11 @@ class CdtGui(Plugin):
 
       # # Update manual goals
       self.update_goals()
-      
+
       # Check status
       if self.state == 'idle':
         pass
-      
+    
       elif self.state == 'running': # the system is running
         # Update time
         self.stopwatch_time+= (self.time_step / (1000.0)) # update in seconds
@@ -167,14 +167,14 @@ class CdtGui(Plugin):
         self.manual_goals_set = self.manual_goals_set + 1
         self.mutex_goals.release()
         # self.update_goals()
-    
+
     def callback_explored_space_percentage(self, msg):
         self.mutex_world.acquire()
         self.world_explored_percentage = msg.data
         self.mutex_world.release()
         # self.update_world_coverage()
-        
- 
+
+
     # Slots (callbacks when an event is triggered)
     def do_service_call(self, service_name):
       try:
@@ -209,7 +209,7 @@ class CdtGui(Plugin):
 
       #
       #return self.do_empty_service_call('/cdt/set_idle')
-    
+
     def update_button(self):
       self._widget.buttonState.setText(self.str_state)
 
@@ -227,13 +227,13 @@ class CdtGui(Plugin):
       self._widget.labelManualGoals.setText(str(self.manual_goals_set))
       self._widget.labelManualGoals.setStyleSheet("color: red;")
       self.mutex_goals.release()
-    
+
     def update_world_coverage(self):
       self.mutex_world.acquire()
       self._widget.labelWorldExploredPercentage.setText(str(int(self.world_explored_percentage)) + '%')
       self._widget.labelWorldExploredPercentage.setStyleSheet("color: green;")
       self.mutex_world.release()
-    
+
     def update_objects(self):
       self.mutex_objects.acquire()
       for obj in self.objects:
@@ -261,5 +261,5 @@ class CdtGui(Plugin):
           self._widget.labelDuck.setEnabled(True)
           label = 'x: %.1f, y: %.1f' %(obj.position.x, obj.position.y)
           self._widget.labelDuckPosition.setText(label)
-        
+
       self.mutex_objects.release()
