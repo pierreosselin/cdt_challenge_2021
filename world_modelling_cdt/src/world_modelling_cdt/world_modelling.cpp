@@ -218,7 +218,7 @@ void WorldModelling::findCurrentFrontiers(const float &x, const float &y,
     // The frontiers are expresed in the fixed frame
     const float twopi = 2 * 3.1416;
     int how_many_angles = 8;
-    float frontier_radius = 5.0;
+    float frontier_radius = 3.0;
 
     for (int i = 0; i < how_many_angles; i++) {
       float angle_increment = twopi / how_many_angles;
@@ -263,25 +263,38 @@ void WorldModelling::updateFrontiers(const float &x, const float &y,
 
   // Preallocate query point
   grid_map::Position query_point;
-
-  // Iterate
   for (auto frontier : frontiers_.frontiers) {
+    current_frontiers_.frontiers.push_back(frontier);
+  }
+  // Iterate
+  for (auto frontier : current_frontiers_.frontiers) {
     const float &frontier_x = frontier.point.x;
     const float &frontier_y = frontier.point.y;
 
     // Compute distance to frontier
     float distance_to_frontier = std::hypot(frontier_x - x, frontier_y - y);
-
-    // If it's close enough, skip
-    if (distance_to_frontier > Distance_to_delete_frontier_) {
-      // If the previous test are passed, add frontier to filtered list
-      // filtered_frontiers.frontiers.push_back(frontier);
-      current_frontiers_.frontiers.push_back(frontier);
+    if (distance_to_frontier > distance_to_delete_frontier_) {
+      filtered_frontiers.frontiers.push_back(frontier);
     }
   }
+  /*
+    For (auto frontier : frontiers_.frontiers) {
+      const float &frontier_x = frontier.point.x;
+      const float &frontier_y = frontier.point.y;
 
+      // Compute distance to frontier
+      float distance_to_frontier = std::hypot(frontier_x - x, frontier_y - y);
+
+      // If it's close enough, skip
+      if (distance_to_frontier > distance_to_delete_frontier_) {
+        // If the previous test are passed, add frontier to filtered list
+        // filtered_frontiers.frontiers.push_back(frontier);
+        current_frontiers_.frontiers.push_back(frontier);
+      }
+    }
+  */
   // Finally, we update the frontiers using the current ones
-  frontiers_ = current_frontiers_;
+  frontiers_ = filtered_frontiers;
 }
 
 void WorldModelling::publishData(
