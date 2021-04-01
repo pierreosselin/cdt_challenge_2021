@@ -126,7 +126,7 @@ bool WorldModelling::updateGraph(const float &x, const float &y,
       float dist = std::hypot(position.x - x, position.y - y);
       //            float dist = ((position.x - x) * (position.x - x)) +
       //            ((position.y - y) * (position.y - y));
-      if (dist < neighborhood_tol || first_node_) {
+      if (dist < neighborhood_tol) {
         if (isLineTraversable(x, y, position.x, position.y)) {
           neighbor_id.data = node.id.data;
           new_node.neighbors_id.push_back(
@@ -175,7 +175,7 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map) {
       // based on the other layers How can we figure out if an area is
       // traversable or not? YOu should fill with a 1.0 if it's traversable, and
       // -1.0 in the other case
-      if (traversability_.at("slope", *iterator) < 0.3) {
+      if (traversability_.at("slope", *iterator) < 1) {
         traversability_.at("traversability", *iterator) = 1.0;
       } else {
         traversability_.at("traversability", *iterator) = -1.0;
@@ -196,7 +196,7 @@ bool WorldModelling::isLineTraversable(const float &x1, const float &y1,
        !iterator.isPastEnd(); ++iterator) {
     // if any point on the line is not traversable, the line isn't
     if (traversability_.at("traversability", *iterator) < 0) {
-      isTraversable = false;
+      return false;
     }
   }
   return isTraversable;
@@ -273,12 +273,11 @@ void WorldModelling::updateFrontiers(const float &x, const float &y,
     float distance_to_frontier = std::hypot(frontier_x - x, frontier_y - y);
 
     // If it's close enough, skip
-    if (distance_to_frontier < distance_to_delete_frontier_) {
-      continue;
+    if (distance_to_frontier > Distance_to_delete_frontier_) {
+      // If the previous test are passed, add frontier to filtered list
+      // filtered_frontiers.frontiers.push_back(frontier);
+      current_frontiers_.frontiers.push_back(frontier);
     }
-
-    // If the previous test are passed, add frontier to filtered list
-    current_frontiers_.frontiers.push_back(frontier);
   }
 
   // Finally, we update the frontiers using the current ones
