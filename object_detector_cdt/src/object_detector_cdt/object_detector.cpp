@@ -156,7 +156,7 @@ cv::Mat ObjectDetector::applyColourFilter(const cv::Mat &in_image_bgr, const Col
     if (colour == Colour::RED) {
         //inRange(in_image_bgr, cv::Scalar(  0,  0,  160), cv::Scalar( 80, 80, 255), mask);
         cv::inRange(in_image_bgr, cv::Scalar(  0,  0,  40), cv::Scalar( 30, 30, 255), mask);
-        cv::Mat element = cv::getStructuringElement( 0, cv::Size( 7, 7 ));
+        cv::Mat element = cv::getStructuringElement( 0, cv::Size( 9, 9 ));
         cv::Mat element3 = cv::getStructuringElement( 0, cv::Size( 7, 7 ));
         cv::morphologyEx( mask, mask, 3, element3);
         cv::morphologyEx( mask, mask, 2, element);
@@ -252,7 +252,7 @@ bool ObjectDetector::recognizeDog(const cv::Mat &in_image, const ros::Time &in_t
     // We use the intrinsics to compute the depth
     double depth = dog_real_height_ / dog_image_height * camera_fy_;
 
-    if (depth > 4.) {
+    if (depth > 5.) {
 
       return false;
     }
@@ -321,7 +321,7 @@ bool ObjectDetector::recognizeBarrel(const cv::Mat &in_image, const ros::Time &i
     // We convert the image position in pixels into "real" coordinates in the camera frame
     // We use the intrinsics to compute the depth
     double depth = barrel_real_height_ / obj_image_height * camera_fy_;
-    if (depth > 4.) {
+    if (depth > 5.) {
 
       return false;
     }
@@ -390,7 +390,7 @@ bool ObjectDetector::recognizeBarrow(const cv::Mat &in_image, const ros::Time &i
     // We use the intrinsics to compute the depth
     double depth = barrow_real_height_ / obj_image_height * camera_fy_;
 
-    if (depth > 4.) {
+    if (depth > 5.) {
 
       return false;
     }
@@ -457,7 +457,7 @@ bool ObjectDetector::recognizeComputer(const cv::Mat &in_image, const ros::Time 
     // We use the intrinsics to compute the depth
     double depth = computer_real_height_ / obj_image_height * camera_fy_;
 
-    if (depth > 4.) {
+    if (depth > 5.) {
 
       return false;
     }
