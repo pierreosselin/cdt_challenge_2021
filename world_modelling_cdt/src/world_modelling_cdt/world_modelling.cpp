@@ -127,9 +127,10 @@ bool WorldModelling::updateGraph(const float &x, const float &y, const float &th
             float dist = std::hypot(position.x - x, position.y - y);
 //            float dist = ((position.x - x) * (position.x - x)) + ((position.y - y) * (position.y - y));
             if(dist < neighborhood_tol || first_node_){
-            neighbor_id.data = node.id.data;
-            new_node.neighbors_id.push_back(neighbor_id);  // here we fill the neighbors of the new_node
-            node.neighbors_id.push_back(new_node.id);
+
+              neighbor_id.data = node.id.data;
+              new_node.neighbors_id.push_back(neighbor_id);  // here we fill the neighbors of the new_node
+              node.neighbors_id.push_back(new_node.id);
             }
         }
         // Finally add the new node to the graph (since all the properties are filled)
