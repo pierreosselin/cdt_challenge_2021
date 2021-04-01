@@ -1,4 +1,6 @@
 #include <world_explorer_cdt/graph_planner.h>
+#include <std_msgs/Int32.h>
+
 
 GraphPlanner::GraphPlanner(){}
 
@@ -55,9 +57,19 @@ void GraphPlanner::findClosestNodes(const double& robot_x, const double& robot_y
     }
 }
 
-void GraphPlanner::generateGraphFromMsg(Eigen::MatrixXd & graph)
+void GraphPlanner::generateGraphFromMsg(Eigen::MatrixXd &graph)
 {
-    // TODO fill the graph representation
+    for(cdt_msgs::GraphNode n : graph_.nodes){
+        for(std_msgs::Int32 neighbour_id : n.neighbors_id){
+            double distance = sqrt(pow(graph_.nodes[neighbour_id.data].pose.position.x - n.pose.position.x,2) + pow(graph_.nodes[neighbour_id.data].pose.position.y - n.pose.position.y,2));
+            graph(n.id.data, neighbour_id.data) = distance;
+            graph(neighbour_id.data, n.id.data) = distance;
+        }
+    }
+    std::cout << "Generated the following graph from Msg:\n";
+    std::cout << graph;
+    std::cout << "\n\n";
+
 }
 
 bool GraphPlanner::planPath(const double& robot_x, 
@@ -76,6 +88,7 @@ bool GraphPlanner::planPath(const double& robot_x,
 
     int goal_id = getGraphID(goal.x(), goal.y());
     int start_id = getGraphID(start.x(), start.y());
+    printf("Start id: %d \t Goal id: %d \n", start_id, goal_id);
 
     int no_vertices = graph_.nodes.size();
 
@@ -84,6 +97,12 @@ bool GraphPlanner::planPath(const double& robot_x,
     generateGraphFromMsg(graph);
 
     dijkstra(graph, start_id, goal_id, route);
+
+    std::cout << "Dijkstra produced the following plan:\n";
+    for(Eigen::Vector2d node : route){
+        std::cout << node;
+        std::cout << "\n";
+    }
 
     return true;
 }   
@@ -124,7 +143,7 @@ void GraphPlanner::dijkstra(const Eigen::MatrixXd& graph, int start_id, int goal
 		for(int v=0;v<vertex;v++)                  
 		/*Update dist[v] if not in Dset and their is a path from src to v through u that has distance minimum than current value of dist[v]*/
 		{
-			if(!Dset[v] && graph(u,v) && dist[u]!=1e5 && dist[u]+graph(u,v)<dist[v])
+			if(!Dset[v] && graph(u,v) && graph(u,v)>1e-4 && dist[u]!=1e5 && dist[u]+graph(u,v)<dist[v])
             {
                 dist[v] = dist[u]+graph(u,v);
                 path[v] = u;

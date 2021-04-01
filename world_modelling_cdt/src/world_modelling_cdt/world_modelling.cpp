@@ -186,8 +186,8 @@ void WorldModelling::findCurrentFrontiers(const float &x, const float &y, const 
     // They're used to guide robot to new places
 
     // If the direction needs a frontier, create one and store in current frontiers
-    bool is_new_frontier = first_frontier_;
-    if (is_new_frontier)
+    bool create_new_frontier = true; // first_frontier_;
+    if (create_new_frontier)
     {
         // We create the frontier as a stamped point
 
