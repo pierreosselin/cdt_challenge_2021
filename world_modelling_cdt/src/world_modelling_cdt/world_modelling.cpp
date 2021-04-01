@@ -218,7 +218,7 @@ void WorldModelling::findCurrentFrontiers(const float &x, const float &y,
     // The frontiers are expresed in the fixed frame
     const float twopi = 2 * 3.1416;
     int how_many_angles = 8;
-    float frontier_radius = 3.0;
+    float frontier_radius = distance_to_delete_frontier_ + 1.0;
 
     for (int i = 0; i < how_many_angles; i++) {
       float angle_increment = twopi / how_many_angles;
