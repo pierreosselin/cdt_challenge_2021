@@ -1,4 +1,5 @@
 #include <world_modelling_cdt/world_modelling.h>
+#include <cmath>
 
 WorldModelling::WorldModelling(ros::NodeHandle &nh)
     : x_last_(0.f),
@@ -192,14 +193,21 @@ void WorldModelling::findCurrentFrontiers(const float &x, const float &y, const 
 
         // In this example we set a frontier 5 meters ahead of the robot
         // The frontiers are expresed in the fixed frame
-        geometry_msgs::PointStamped frontier;
-        frontier.header.stamp = time;                  // We store the time the frontier was created
-        frontier.header.frame_id = input_fixed_frame_; // And the frame it's referenced to
-        frontier.point.x = x + 5.0;                    // And the position, of course
-        frontier.point.y = y;
-
-        // Finally we store it in the current frontiers' list
-        current_frontiers_.frontiers.push_back(frontier);
+        const float twopi = 2 * 3.1416;
+        int how_many_angles = 8 ;
+        float frontier_radius = 5.0;
+        
+            for(int i = 0; i < how_many_angles; i++){
+            float angle_increment = twopi / how_many_angles;
+            geometry_msgs::PointStamped frontier;
+            frontier.header.stamp = time;                  // We store the time the frontier was created
+            frontier.header.frame_id = input_fixed_frame_; // And the frame it's referenced to
+            // And the position, of course
+            frontier.point.x = x + (frontier_radius * cos(i * angle_increment));
+            frontier.point.y = y + (frontier_radius * sin(i * angle_increment));
+            // Finally we store it in the current frontiers' list
+            current_frontiers_.frontiers.push_back(frontier);
+        }
 
         first_frontier_ = false; // This is to avoid creating more than one frontiers. This is just for the example, you may need to remove this
     }
