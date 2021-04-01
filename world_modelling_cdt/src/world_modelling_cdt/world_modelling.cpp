@@ -172,7 +172,7 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map)
             // TODO Fill the traversability at each position using some criterion based on the other layers
             // How can we figure out if an area is traversable or not?
             // YOu should fill with a 1.0 if it's traversable, and -1.0 in the other case
-            if (traversability_.at("slope", *iterator) < 0.1) {
+            if (traversability_.at("slope", *iterator) < 0.3) {
                 traversability_.at("traversability", *iterator) = 1.0;
             } else {
                 traversability_.at("traversability", *iterator) = -1.0;
@@ -199,7 +199,7 @@ void WorldModelling::findCurrentFrontiers(const float &x, const float &y, const 
         const float twopi = 2 * 3.1416;
         int how_many_angles = 8 ;
         float frontier_radius = 5.0;
-        
+
             for(int i = 0; i < how_many_angles; i++){
             float angle_increment = twopi / how_many_angles;
             geometry_msgs::PointStamped frontier;
