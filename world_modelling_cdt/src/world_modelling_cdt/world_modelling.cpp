@@ -276,8 +276,19 @@ void WorldModelling::updateFrontiers(const float &x, const float &y,
     const float &frontier_y = frontier.point.y;
 
     // Compute distance to frontier
+
     float distance_to_frontier = std::hypot(frontier_x - x, frontier_y - y);
-    if (distance_to_frontier > distance_to_delete_frontier_) {
+
+    bool are_we_far_away = true;
+    for (auto node : exploration_graph_.nodes) {
+      auto position = node.pose.position;
+      float dist_to_frontier =
+          std::hypot(position.x - frontier_x, position.y - frontier_y);
+      if (dist_to_frontier < distance_to_delete_frontier_) {
+        are_we_far_away = false;
+      }
+    }
+    if (are_we_far_away) {
       filtered_frontiers.frontiers.push_back(frontier);
     }
   }
