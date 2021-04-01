@@ -125,7 +125,7 @@ void ObjectDetector::imageCallback(const sensor_msgs::ImageConstPtr &in_msg)
             detected_objects_.objects.push_back(new_object);
         }
     }
-    
+
     // Publish list of objects detected so far
     objects_pub_.publish(detected_objects_);
 }

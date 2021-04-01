@@ -1,4 +1,5 @@
 #include <world_modelling_cdt/world_modelling.h>
+#include <cmath>
 
 WorldModelling::WorldModelling(ros::NodeHandle &nh)
     : x_last_(0.f),
@@ -127,9 +128,10 @@ bool WorldModelling::updateGraph(const float &x, const float &y, const float &th
             float dist = std::hypot(position.x - x, position.y - y);
 //            float dist = ((position.x - x) * (position.x - x)) + ((position.y - y) * (position.y - y));
             if(dist < neighborhood_tol || first_node_){
-            neighbor_id.data = node.id.data;
-            new_node.neighbors_id.push_back(neighbor_id);  // here we fill the neighbors of the new_node
-            node.neighbors_id.push_back(new_node.id);
+
+              neighbor_id.data = node.id.data;
+              new_node.neighbors_id.push_back(neighbor_id);  // here we fill the neighbors of the new_node
+              node.neighbors_id.push_back(new_node.id);
             }
         }
         // Finally add the new node to the graph (since all the properties are filled)
@@ -155,6 +157,8 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map)
 
     // Copy elevation from input grid map to traversability grid map
     traversability_.add("elevation", grid_map["elevation_inpainted"]);
+    // Copy slope from input grid map to traversability grid map
+    traversability_.add("slope", grid_map["slope_inpainted"]);
 
     // Create a new traversability layer with initial value 0.0
     traversability_.add("traversability", 0.0);
@@ -168,7 +172,7 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map)
             // TODO Fill the traversability at each position using some criterion based on the other layers
             // How can we figure out if an area is traversable or not?
             // YOu should fill with a 1.0 if it's traversable, and -1.0 in the other case
-            if (traversability_.at("elevation", *iterator) < 0.1) {
+            if (traversability_.at("slope", *iterator) < 0.1) {
                 traversability_.at("traversability", *iterator) = 1.0;
             } else {
                 traversability_.at("traversability", *iterator) = -1.0;
@@ -192,14 +196,21 @@ void WorldModelling::findCurrentFrontiers(const float &x, const float &y, const 
 
         // In this example we set a frontier 5 meters ahead of the robot
         // The frontiers are expresed in the fixed frame
-        geometry_msgs::PointStamped frontier;
-        frontier.header.stamp = time;                  // We store the time the frontier was created
-        frontier.header.frame_id = input_fixed_frame_; // And the frame it's referenced to
-        frontier.point.x = x + 5.0;                    // And the position, of course
-        frontier.point.y = y;
-
-        // Finally we store it in the current frontiers' list
-        current_frontiers_.frontiers.push_back(frontier);
+        const float twopi = 2 * 3.1416;
+        int how_many_angles = 8 ;
+        float frontier_radius = 5.0;
+        
+            for(int i = 0; i < how_many_angles; i++){
+            float angle_increment = twopi / how_many_angles;
+            geometry_msgs::PointStamped frontier;
+            frontier.header.stamp = time;                  // We store the time the frontier was created
+            frontier.header.frame_id = input_fixed_frame_; // And the frame it's referenced to
+            // And the position, of course
+            frontier.point.x = x + (frontier_radius * cos(i * angle_increment));
+            frontier.point.y = y + (frontier_radius * sin(i * angle_increment));
+            // Finally we store it in the current frontiers' list
+            current_frontiers_.frontiers.push_back(frontier);
+        }
 
         first_frontier_ = false; // This is to avoid creating more than one frontiers. This is just for the example, you may need to remove this
     }
