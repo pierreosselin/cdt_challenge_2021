@@ -134,7 +134,7 @@ void ObjectDetector::convertMessageToImage(const sensor_msgs::ImageConstPtr &in_
 {
     // Convert Image message to cv::Mat using cv_bridge
     out_image = cv_bridge::toCvShare(in_msg, "bgr8")->image;
-    bool result = cv::imwrite("/home/cdt2021/Desktop/real_image_debug_file.png", out_image);
+    //bool result = cv::imwrite("/home/cdt2021/Desktop/real_image_debug_file.png", out_image);
     // Extract timestamp from header
     out_timestamp = in_msg->header.stamp;
 }
@@ -169,12 +169,11 @@ cv::Mat ObjectDetector::applyColourFilter(const cv::Mat &in_image_bgr, const Col
     }
 
     // Apply morphological operationOpening:
-    bool result = cv::imwrite("/home/cdt2021/Desktop/mask_before_morphology.png", mask);
+    //bool result = cv::imwrite("/home/cdt2021/Desktop/mask_before_morphology.png", mask);
 
-    cv::Mat element = cv::getStructuringElement( 0, cv::Size( 3, 3 ));
-    cv::morphologyEx( mask, mask, 3, element);
-    //cv::morphologyEx( mask, mask, 2, element);
-    result = cv::imwrite("/home/cdt2021/Desktop/mask_after_morphology.png", mask);
+    cv::Mat element = cv::getStructuringElement( 0, cv::Size( 5, 5 ));
+    cv::morphologyEx( mask, mask, 2, element);
+    //result = cv::imwrite("/home/cdt2021/Desktop/mask_after_morphology.png", mask);
 
 
     ///
@@ -185,13 +184,13 @@ cv::Mat ObjectDetector::applyColourFilter(const cv::Mat &in_image_bgr, const Col
 
 cv::Mat ObjectDetector::applyBoundingBox(const cv::Mat1b &in_mask, double &x, double &y, double &width, double &height) {
 
-    cv::Mat drawing = in_mask.clone();
+    cv::Mat drawing;
     //cv::Mat(in_mask.rows,in_mask.cols, CV_64F, cvScalar(0.)); // it could be useful to fill this image if you want to debug
 
     // TODO: Compute the bounding box using the mask
     // You need to return the center of the object in image coordinates, as well as a bounding box indicating its height and width (in pixels)
     cv::Rect Min_Rect = cv::boundingRect(in_mask);
-    cv::rectangle(drawing, Min_Rect,(255,255,255));
+    //cv::rectangle(drawing, Min_Rect,(255,255,255));
 
 
     x = (Min_Rect.width)/2 + (Min_Rect.x);
@@ -199,19 +198,7 @@ cv::Mat ObjectDetector::applyBoundingBox(const cv::Mat1b &in_mask, double &x, do
     width = Min_Rect.width;
     height = Min_Rect.height;
 
-    bool result;
-    try
-    {
-        result = cv::imwrite("/home/cdt2021/Desktop/image_debug_box_file.png", drawing);
-    }
-    catch (const cv::Exception& ex)
-    {
-        fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
-    }
 
-    if (!result) {
-      std::cout << "Image Not Saved";
-    }
     return drawing;
 }
 
@@ -229,6 +216,21 @@ bool ObjectDetector::recognizeDog(const cv::Mat &in_image, const ros::Time &in_t
     cv::Mat in_image_red = applyColourFilter(in_image, Colour::RED);
     cv::Mat in_image_bounding_box = applyBoundingBox(in_image_red, dog_image_center_x, dog_image_center_y, dog_image_width, dog_image_height);
 
+    /* Debugging part
+    bool result;
+    try
+    {
+        result = cv::imwrite("/home/cdt2021/Desktop/image_debug_dog.png", in_image_red);
+    }
+    catch (const cv::Exception& ex)
+    {
+        fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
+    }
+
+    if (!result) {
+      std::cout << "Image Not Saved";
+    }
+    */
     // Note: Almost everything below should be kept as it is
 
     // We convert the image position in pixels into "real" coordinates in the camera frame
@@ -245,6 +247,7 @@ bool ObjectDetector::recognizeDog(const cv::Mat &in_image, const ros::Time &in_t
     double dog_position_camera_x = depth / camera_fx_ * (dog_image_center_x - camera_cx_);
     double dog_position_camera_y = depth / camera_fy_ * (dog_image_center_y - camera_cy_);
     double dog_position_camera_z = depth;
+
 
 
     // Camera coordinates are different to robot and fixed frame coordinates
@@ -285,9 +288,19 @@ bool ObjectDetector::recognizeBarrel(const cv::Mat &in_image, const ros::Time &i
     // TODO: the functions we use below should be filled to make this work
     cv::Mat in_image_red = applyColourFilter(in_image, Colour::YELLOW);
     cv::Mat in_image_bounding_box = applyBoundingBox(in_image_red, obj_image_center_x, obj_image_center_y, obj_image_width, obj_image_height);
+    /*
+    bool result;
+    try
+    {
+        result = cv::imwrite("/home/cdt2021/Desktop/image_debug_barrel.png", in_image_red);
+    }
+    catch (const cv::Exception& ex)
+    {
+        fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
+    }
 
+    */
     // Note: Almost everything below should be kept as it is
-
     // We convert the image position in pixels into "real" coordinates in the camera frame
     // We use the intrinsics to compute the depth
     double depth = barrel_real_height_ / obj_image_height * camera_fy_;
@@ -341,6 +354,17 @@ bool ObjectDetector::recognizeBarrow(const cv::Mat &in_image, const ros::Time &i
     cv::Mat in_image_red = applyColourFilter(in_image, Colour::GREEN);
     cv::Mat in_image_bounding_box = applyBoundingBox(in_image_red, obj_image_center_x, obj_image_center_y, obj_image_width, obj_image_height);
 
+    /*
+    bool result;
+    try
+    {
+        result = cv::imwrite("/home/cdt2021/Desktop/image_debug_barrow.png", in_image_red);
+    }
+    catch (const cv::Exception& ex)
+    {
+        fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
+    }
+    */
     // Note: Almost everything below should be kept as it is
 
     // We convert the image position in pixels into "real" coordinates in the camera frame
@@ -397,7 +421,17 @@ bool ObjectDetector::recognizeComputer(const cv::Mat &in_image, const ros::Time 
     // TODO: the functions we use below should be filled to make this work
     cv::Mat in_image_red = applyColourFilter(in_image, Colour::BLUE);
     cv::Mat in_image_bounding_box = applyBoundingBox(in_image_red, obj_image_center_x, obj_image_center_y, obj_image_width, obj_image_height);
-
+    /*
+    bool result;
+    try
+    {
+        result = cv::imwrite("/home/cdt2021/Desktop/image_debug_computer.png", in_image_red);
+    }
+    catch (const cv::Exception& ex)
+    {
+        fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
+    }
+    */
     // Note: Almost everything below should be kept as it is
 
     // We convert the image position in pixels into "real" coordinates in the camera frame
