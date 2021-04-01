@@ -92,4 +92,5 @@ private:
 
     // Utils
     void getRobotPose(float &x, float &y, float &theta);
+    bool isLineTraversable(const float &x1, const float &y1, const float &x2, const float &y2);
 };
