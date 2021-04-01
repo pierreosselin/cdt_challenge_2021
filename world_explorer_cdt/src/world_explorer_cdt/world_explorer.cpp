@@ -22,6 +22,11 @@ WorldExplorer::WorldExplorer(ros::NodeHandle &nh)
 
     // Execute main loop
     std::cout << "Starting WorldExplorer::run()\n";
+
+    double robot_x, robot_y, robot_theta;
+    getRobotPose2D(robot_x, robot_y, robot_theta);
+    start_pos << robot_x, robot_y;
+
     run();
 }
 
@@ -151,32 +156,27 @@ double WorldExplorer::dist(Eigen::Vector2d point1, Eigen::Vector2d point2) {
     return dist;
 }
 
-double WorldExplorer::frontierDist(Eigen::Vector2d frontier_point){
-    // Heuristic for identifying best frontier point to explore
+double WorldExplorer::distTo(Eigen::Vector2d otherPoint){
 
-    // Ondrej's ideas for various levels of sophistication:
-    // Level 0: Euclidean distance
-    //     Problem: Ignores walls -> can lead to iterative exploration of points on opposite sides of a wall
-    // Level 1: If euclidean distance is much shorter than the distance predicted by the local planner, check options
-    // Level 2: Explore primarily frontiers near large unexplored regions
-
-
-    // First MVP - Euclidean distance to the point
-    return dist(frontier_point, robot_pos);
+    return dist(otherPoint, robot_pos);
 }
 
 void WorldExplorer::plan()
 {
+    double robot_x, robot_y, robot_theta;
+    getRobotPose2D(robot_x, robot_y, robot_theta);
+    robot_pos << robot_x, robot_y;
+
     // We only run the planning if there are frontiers available
     if(frontiers_.frontiers.size() > 0)
     {
+        double local_range = 2.5;
+
         ROS_INFO("Exploooooriiiiiiiiiiiiiing");
         ROS_DEBUG_STREAM("Pos controller status: " << pos_ctrl_status_);
 
         // Get current position
-        double robot_x, robot_y, robot_theta;
-        getRobotPose2D(robot_x, robot_y, robot_theta);
-        robot_pos << robot_x, robot_y;
+
         
         // Analyze and sort frontiers
         std::vector<Eigen::Vector2d> goals = local_planner_.searchFrontiers(frontiers_, robot_x, robot_y, robot_theta);
@@ -188,7 +188,7 @@ void WorldExplorer::plan()
 //        int i=0;
 //        std::cout << "Frontier points:\n";
 //        for (auto &frontier_point : goals){
-//            distances[i++] = frontierDist(frontier_point);
+//            distances[i++] = distTo(frontier_point);
 //            std::cout << frontier_point;
 //            std::cout << "\n";
 //            std::cout << "Distance: ";
@@ -200,65 +200,81 @@ void WorldExplorer::plan()
 
 
         // Local Planner (RRT)
-        // TODO Plan a route to the most suitable frontier
+        // TODO - DONE Plan a route to the most suitable frontier
         bool planning_successful = false;
         int i = 0;
         Eigen::Vector2d pose_goal;
-        while(!planning_successful && i < goals.size() && frontierDist(goals.at(i))<2.5){
+        while(!planning_successful && i < goals.size() && distTo(goals.at(i))<local_range){
             pose_goal = goals.at(i);
-            std::cout << "Trying to do local planning toward point ";
-            std::cout << pose_goal;
-            std::cout << " ... ";
+//            ROS_INFO("Trying to do local planning toward point " << (double)pose_goal(0) << " , " <<pose_goal(1));
             planning_successful = local_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
-            if(planning_successful)
-                std::cout << " succeeded.";
+            if(planning_successful){
+                ROS_INFO(" ... succeeded.");
+                graph_plan_ = false;
+                line_explore_ = false;
+            }
             i++;
         }
 
-        // Ondrej's self-TODO: try going along a line first
 
         if(!planning_successful) {
             pose_goal = goals.at(0);
-            std::cout << "Trying graph planning instead.\n";
+            ROS_INFO("Trying graph planning instead.\n");
             planning_successful = graph_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
+            graph_plan_ = true;
+            if(line_explore_ || distTo(route_.back())<0.3){
+                ROS_INFO("Already near graph target. Trying to head there along a line.");
+                line_explore_ = true;
+                // Go partially in that direction instead
+                double dist2goal = distTo(pose_goal);
+                pose_goal = ((dist2goal-local_range)/dist2goal)*robot_pos + (local_range/dist2goal)*pose_goal;
+                planning_successful = local_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
+            }
+
         }
 
         // If we have route targets (frontiers), work them off and send to position controller
-        if(route_.size() > 0)
-        {
-            // Create goal message
-            geometry_msgs::PoseStamped target;
-            target.pose.position.x = route_.begin()->x();
-            target.pose.position.y = route_.begin()->y();
-            target.pose.position.z = 0.25;
-            target.header.frame_id = goal_frame_;
-            goal_pub_.publish(target);
-            ROS_DEBUG_STREAM("Sending target " << route_.begin()->transpose());
-
-            // Visualize route (plan)
-            nav_msgs::Path plan;
-            plan.header.stamp = ros::Time::now(); // Should fix this
-            plan.header.frame_id = goal_frame_;
-            geometry_msgs::PoseStamped pose;
-            pose.pose.position.x = robot_x;
-            pose.pose.position.y = robot_y;
-            pose.pose.position.z = 0.25; // This is to improve the visualization only
-            plan.poses.push_back(pose);
-
-            for(auto carrot : route_){
-                geometry_msgs::PoseStamped pose;
-                pose.pose.position.x = carrot.x();
-                pose.pose.position.y = carrot.y();
-                pose.pose.position.z = 0.25; // This is to improve the visualization only
-                plan.poses.push_back(pose);
-            }
-            plan_pub_.publish(plan);
-        } 
+        submitPlan();
     }
     else
     {
         ROS_INFO("No frontiers to go to.");
         // TODO: Implement something to indicate it ended and optionally go to the home position
+        graph_planner_.planPath(robot_x, robot_y, robot_theta, start_pos, route_);
+        submitPlan();
+    }
+}
+
+void WorldExplorer::submitPlan(){
+    if(route_.size() > 0)
+    {
+        // Create goal message
+        geometry_msgs::PoseStamped target;
+        target.pose.position.x = route_.begin()->x();
+        target.pose.position.y = route_.begin()->y();
+        target.pose.position.z = 0.25;
+        target.header.frame_id = goal_frame_;
+        goal_pub_.publish(target);
+        ROS_DEBUG_STREAM("Sending target " << route_.begin()->transpose());
+
+        // Visualize route (plan)
+        nav_msgs::Path plan;
+        plan.header.stamp = ros::Time::now(); // Should fix this
+        plan.header.frame_id = goal_frame_;
+        geometry_msgs::PoseStamped pose;
+        pose.pose.position.x = robot_pos(0);
+        pose.pose.position.y = robot_pos(1);
+        pose.pose.position.z = 0.25; // This is to improve the visualization only
+        plan.poses.push_back(pose);
+
+        for(auto carrot : route_){
+            geometry_msgs::PoseStamped pose;
+            pose.pose.position.x = carrot.x();
+            pose.pose.position.y = carrot.y();
+            pose.pose.position.z = 0.25; // This is to improve the visualization only
+            plan.poses.push_back(pose);
+        }
+        plan_pub_.publish(plan);
     }
 }
 

@@ -156,7 +156,12 @@ void GraphPlanner::dijkstra(const Eigen::MatrixXd& graph, int start_id, int goal
     Eigen::Vector2d goal(graph_.nodes.at(goal_id).pose.position.x, graph_.nodes.at(goal_id).pose.position.y);
     route.push_back(goal);
 
-    // TODO extract the final route
+    // TODO - DONE extract the final route
+    int next_id = goal_id;
+    while(next_id!=start_id){
+        next_id = path[next_id];
+        route.insert(route.begin(),Eigen::Vector2d(graph_.nodes.at(next_id).pose.position.x, graph_.nodes.at(next_id).pose.position.y));
+    }
 }
 
 int GraphPlanner::minimumDist(double dist[], bool Dset[]) 
