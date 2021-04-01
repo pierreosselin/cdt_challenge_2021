@@ -188,17 +188,16 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map) {
 
 bool WorldModelling::isLineTraversable(const float &x1, const float &y1,
                                        const float &x2, const float &y2) {
-
-  grid_map::Index start(x1, y1);
-  grid_map::Index end(x2, y2);
-  bool isTraversable = true;
-  for (grid_map::LineIterator iterator(traversability_, start, end);
-       !iterator.isPastEnd(); ++iterator) {
-    // if any point on the line is not traversable, the line isn't
-    if (traversability_.at("traversability", *iterator) < 0) {
-      return false;
+    Eigen::Vector2d start(x1, y1);
+    Eigen::Vector2d end(x2, y2);
+    bool isTraversable = true;
+    for (grid_map::LineIterator iterator(traversability_, start, end);
+           !iterator.isPastEnd(); ++iterator) {
+        // if any point on the line is not traversable, the line isn't
+        if (traversability_.at("traversability", *iterator) < 0) {
+          return false;
+        }
     }
-  }
   return isTraversable;
 }
 
@@ -273,7 +272,7 @@ void WorldModelling::updateFrontiers(const float &x, const float &y,
     float distance_to_frontier = std::hypot(frontier_x - x, frontier_y - y);
 
     // If it's close enough, skip
-    if (distance_to_frontier > Distance_to_delete_frontier_) {
+    if (distance_to_frontier > distance_to_delete_frontier_) {
       // If the previous test are passed, add frontier to filtered list
       // filtered_frontiers.frontiers.push_back(frontier);
       current_frontiers_.frontiers.push_back(frontier);
