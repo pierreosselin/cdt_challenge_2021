@@ -220,21 +220,31 @@ void WorldModelling::findCurrentFrontiers(const float &x, const float &y,
     int how_many_angles = 24;
     float frontier_radius = distance_to_delete_frontier_ + 1.0;
 
-    for (int i = 0; i < how_many_angles; i++) {
-      float angle_increment = twopi / how_many_angles;
-      float target_x = x + (frontier_radius * cos(i * angle_increment));
-      float target_y = y + (frontier_radius * sin(i * angle_increment));
-      geometry_msgs::PointStamped frontier;
-      frontier.header.stamp =
-          time; // We store the time the frontier was created
-      frontier.header.frame_id =
-          input_fixed_frame_; // And the frame it's referenced to
-      // And the position, of course
-      frontier.point.x = target_x;
-      frontier.point.y = target_y;
-      // Finally we store it in the current frontiers' list
-      if (isLineTraversable(x, y, target_x, target_y)) {
-        current_frontiers_.frontiers.push_back(frontier);
+    int count = 0;
+    int has_run = false; // use a do while instead?
+    while (count == 0) {
+      if (has_run) {
+        distance_to_delete_frontier_ = distance_to_delete_frontier_ * 0.7;
+        frontier_radius = frontier_radius * 0.7;
+      }
+      for (int i = 0; i < how_many_angles; i++) {
+        float angle_increment = twopi / how_many_angles;
+        float target_x = x + (frontier_radius * cos(i * angle_increment));
+        float target_y = y + (frontier_radius * sin(i * angle_increment));
+        geometry_msgs::PointStamped frontier;
+        frontier.header.stamp =
+            time; // We store the time the frontier was created
+        frontier.header.frame_id =
+            input_fixed_frame_; // And the frame it's referenced to
+        // And the position, of course
+        frontier.point.x = target_x;
+        frontier.point.y = target_y;
+        // Finally we store it in the current frontiers' list
+        if (isLineTraversable(x, y, target_x, target_y)) {
+          current_frontiers_.frontiers.push_back(frontier);
+          count++;
+        }
+        has_run = true;
       }
     }
 
