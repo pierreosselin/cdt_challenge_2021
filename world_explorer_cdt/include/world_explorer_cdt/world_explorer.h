@@ -73,6 +73,7 @@ class WorldExplorer
     double path_execute_limit_ = 100.0;
 
     Eigen::Vector2d robot_pos;
+    Eigen::Vector2d start_pos;
 
     bool start_exploring_ = false;
     bool received_frontiers_ = false;
@@ -109,6 +110,7 @@ private:
     void positionCtrlCallback(const std_msgs::Float32& in_status);
     double dist(Eigen::Vector2d point1, Eigen::Vector2d point2);
     double distTo(const Eigen::Vector2d frontier_point);
+    void submitPlan();
 
     // Main loop
     void run();
