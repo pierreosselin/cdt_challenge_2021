@@ -160,7 +160,7 @@ void GraphPlanner::dijkstra(const Eigen::MatrixXd& graph, int start_id, int goal
     int next_id = goal_id;
     while(next_id!=start_id){
         next_id = path[next_id];
-        route.push(goal(graph_.nodes.at(next_id).pose.position.x, graph_.nodes.at(next_id).pose.position.y)
+        route.push_front(goal(graph_.nodes.at(next_id).pose.position.x, graph_.nodes.at(next_id).pose.position.y)
     }
 }
 
