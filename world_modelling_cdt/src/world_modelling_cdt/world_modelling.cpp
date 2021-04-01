@@ -100,7 +100,7 @@ bool WorldModelling::updateGraph(const float &x, const float &y,
   // If we're at least tol away from all nodes, create a new node.
   bool are_we_far_away = true;
   for (auto node : exploration_graph_.nodes) {
-    const float tol = 0.5;
+    const float tol = 1.;
     auto position = node.pose.position;
     float dist = std::hypot(position.x - x, position.y - y);
     if (dist < tol) {
@@ -119,7 +119,7 @@ bool WorldModelling::updateGraph(const float &x, const float &y,
 
     // Adding neighbors
     std_msgs::Int32 neighbor_id;
-    const float neighborhood_tol = 2.0;
+    const float neighborhood_tol = 3.0;
     // use auto & as we modify the node
     for (auto &node : exploration_graph_.nodes) {
       auto position = node.pose.position;
