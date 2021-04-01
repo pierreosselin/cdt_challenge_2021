@@ -156,13 +156,29 @@ cv::Mat ObjectDetector::applyColourFilter(const cv::Mat &in_image_bgr, const Col
     if (colour == Colour::RED) {
         //inRange(in_image_bgr, cv::Scalar(  0,  0,  160), cv::Scalar( 80, 80, 255), mask);
         cv::inRange(in_image_bgr, cv::Scalar(  0,  0,  40), cv::Scalar( 30, 30, 255), mask);
+        cv::Mat element = cv::getStructuringElement( 0, cv::Size( 7, 7 ));
+        cv::Mat element3 = cv::getStructuringElement( 0, cv::Size( 7, 7 ));
+        cv::morphologyEx( mask, mask, 3, element3);
+        cv::morphologyEx( mask, mask, 2, element);
     } else if (colour == Colour::YELLOW) {
         //inRange(in_image_bgr, cv::Scalar(  0,  160,  160), cv::Scalar( 80, 255, 255), mask);
-        cv::inRange(in_image_bgr, cv::Scalar(  0,  40,  40), cv::Scalar( 30, 255, 255), mask);
+        cv::inRange(in_image_bgr, cv::Scalar(  0,  50,  50), cv::Scalar( 30, 255, 255), mask);
+        cv::Mat element = cv::getStructuringElement( 0, cv::Size( 15, 15 ));
+        cv::Mat element3 = cv::getStructuringElement( 0, cv::Size( 5, 5 ));
+        cv::morphologyEx( mask, mask, 3, element3);
+        cv::morphologyEx( mask, mask, 2, element);
     } else if (colour == Colour::GREEN) {
         cv::inRange(in_image_bgr, cv::Scalar(  0,  40,  0), cv::Scalar( 30, 255, 30), mask);
+        cv::Mat element = cv::getStructuringElement( 0, cv::Size( 9, 9 ));
+        cv::Mat element3 = cv::getStructuringElement( 0, cv::Size( 5, 5 ));
+        cv::morphologyEx( mask, mask, 3, element3);
+        cv::morphologyEx( mask, mask, 2, element);
     } else if (colour == Colour::BLUE) {
         cv::inRange(in_image_bgr, cv::Scalar(  40,  0,  0), cv::Scalar( 255, 30, 30), mask);
+        cv::Mat element = cv::getStructuringElement( 0, cv::Size( 9, 9 ));
+        cv::Mat element3 = cv::getStructuringElement( 0, cv::Size( 5, 5 ));
+        cv::morphologyEx( mask, mask, 3, element3);
+        cv::morphologyEx( mask, mask, 2, element);
     } else {
         // Report color not implemented
         ROS_ERROR_STREAM("[ObjectDetector::colourFilter] colour (" << colour << "  not implemented!");
@@ -170,9 +186,8 @@ cv::Mat ObjectDetector::applyColourFilter(const cv::Mat &in_image_bgr, const Col
 
     // Apply morphological operationOpening:
     //bool result = cv::imwrite("/home/cdt2021/Desktop/mask_before_morphology.png", mask);
+    //bool result = cv::imwrite("/home/cdt2021/Desktop/image_debug_barrel_before_morph.png", mask);
 
-    cv::Mat element = cv::getStructuringElement( 0, cv::Size( 5, 5 ));
-    cv::morphologyEx( mask, mask, 2, element);
     //result = cv::imwrite("/home/cdt2021/Desktop/mask_after_morphology.png", mask);
 
 
@@ -216,7 +231,7 @@ bool ObjectDetector::recognizeDog(const cv::Mat &in_image, const ros::Time &in_t
     cv::Mat in_image_red = applyColourFilter(in_image, Colour::RED);
     cv::Mat in_image_bounding_box = applyBoundingBox(in_image_red, dog_image_center_x, dog_image_center_y, dog_image_width, dog_image_height);
 
-    /* Debugging part
+
     bool result;
     try
     {
@@ -230,14 +245,14 @@ bool ObjectDetector::recognizeDog(const cv::Mat &in_image, const ros::Time &in_t
     if (!result) {
       std::cout << "Image Not Saved";
     }
-    */
+
     // Note: Almost everything below should be kept as it is
 
     // We convert the image position in pixels into "real" coordinates in the camera frame
     // We use the intrinsics to compute the depth
     double depth = dog_real_height_ / dog_image_height * camera_fy_;
 
-    if (depth > 3) {
+    if (depth > 4.) {
 
       return false;
     }
@@ -292,19 +307,21 @@ bool ObjectDetector::recognizeBarrel(const cv::Mat &in_image, const ros::Time &i
     bool result;
     try
     {
+
+        result = cv::imwrite("/home/cdt2021/Desktop/image_debug_barrel_real.png", in_image);
         result = cv::imwrite("/home/cdt2021/Desktop/image_debug_barrel.png", in_image_red);
     }
     catch (const cv::Exception& ex)
     {
         fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
     }
-
     */
+
     // Note: Almost everything below should be kept as it is
     // We convert the image position in pixels into "real" coordinates in the camera frame
     // We use the intrinsics to compute the depth
     double depth = barrel_real_height_ / obj_image_height * camera_fy_;
-    if (depth > 3) {
+    if (depth > 4.) {
 
       return false;
     }
@@ -358,6 +375,7 @@ bool ObjectDetector::recognizeBarrow(const cv::Mat &in_image, const ros::Time &i
     bool result;
     try
     {
+        result = cv::imwrite("/home/cdt2021/Desktop/image_debug_barrow_real.png", in_image);
         result = cv::imwrite("/home/cdt2021/Desktop/image_debug_barrow.png", in_image_red);
     }
     catch (const cv::Exception& ex)
@@ -365,13 +383,14 @@ bool ObjectDetector::recognizeBarrow(const cv::Mat &in_image, const ros::Time &i
         fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
     }
     */
+
     // Note: Almost everything below should be kept as it is
 
     // We convert the image position in pixels into "real" coordinates in the camera frame
     // We use the intrinsics to compute the depth
     double depth = barrow_real_height_ / obj_image_height * camera_fy_;
 
-    if (depth > 3) {
+    if (depth > 4.) {
 
       return false;
     }
@@ -438,7 +457,7 @@ bool ObjectDetector::recognizeComputer(const cv::Mat &in_image, const ros::Time 
     // We use the intrinsics to compute the depth
     double depth = computer_real_height_ / obj_image_height * camera_fy_;
 
-    if (depth > 3) {
+    if (depth > 4.) {
 
       return false;
     }
