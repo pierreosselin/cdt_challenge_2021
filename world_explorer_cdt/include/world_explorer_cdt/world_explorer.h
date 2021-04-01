@@ -79,6 +79,9 @@ class WorldExplorer
     bool received_trav_map_ = false;
     bool position_controller_ready_ = false;
     bool execute_full_path_ = false;
+    bool graph_plan_ = false;
+    bool line_explore_ = false;
+
 
     // Planers
     LocalPlanner local_planner_;
@@ -105,7 +108,7 @@ private:
     void graphCallback(const cdt_msgs::Graph& in_graph);
     void positionCtrlCallback(const std_msgs::Float32& in_status);
     double dist(Eigen::Vector2d point1, Eigen::Vector2d point2);
-    double frontierDist(const Eigen::Vector2d frontier_point);
+    double distTo(const Eigen::Vector2d frontier_point);
 
     // Main loop
     void run();

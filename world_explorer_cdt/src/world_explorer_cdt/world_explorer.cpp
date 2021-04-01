@@ -151,18 +151,9 @@ double WorldExplorer::dist(Eigen::Vector2d point1, Eigen::Vector2d point2) {
     return dist;
 }
 
-double WorldExplorer::frontierDist(Eigen::Vector2d frontier_point){
-    // Heuristic for identifying best frontier point to explore
+double WorldExplorer::distTo(Eigen::Vector2d otherPoint){
 
-    // Ondrej's ideas for various levels of sophistication:
-    // Level 0: Euclidean distance
-    //     Problem: Ignores walls -> can lead to iterative exploration of points on opposite sides of a wall
-    // Level 1: If euclidean distance is much shorter than the distance predicted by the local planner, check options
-    // Level 2: Explore primarily frontiers near large unexplored regions
-
-
-    // First MVP - Euclidean distance to the point
-    return dist(frontier_point, robot_pos);
+    return dist(otherPoint, robot_pos);
 }
 
 void WorldExplorer::plan()
@@ -170,6 +161,8 @@ void WorldExplorer::plan()
     // We only run the planning if there are frontiers available
     if(frontiers_.frontiers.size() > 0)
     {
+        double local_range = 2.5;
+
         ROS_INFO("Exploooooriiiiiiiiiiiiiing");
         ROS_DEBUG_STREAM("Pos controller status: " << pos_ctrl_status_);
 
@@ -188,7 +181,7 @@ void WorldExplorer::plan()
 //        int i=0;
 //        std::cout << "Frontier points:\n";
 //        for (auto &frontier_point : goals){
-//            distances[i++] = frontierDist(frontier_point);
+//            distances[i++] = distTo(frontier_point);
 //            std::cout << frontier_point;
 //            std::cout << "\n";
 //            std::cout << "Distance: ";
@@ -204,23 +197,35 @@ void WorldExplorer::plan()
         bool planning_successful = false;
         int i = 0;
         Eigen::Vector2d pose_goal;
-        while(!planning_successful && i < goals.size() && frontierDist(goals.at(i))<2.5){
+        while(!planning_successful && i < goals.size() && distTo(goals.at(i))<local_range){
             pose_goal = goals.at(i);
             std::cout << "Trying to do local planning toward point ";
             std::cout << pose_goal;
             std::cout << " ... ";
             planning_successful = local_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
-            if(planning_successful)
+            if(planning_successful){
                 std::cout << " succeeded.";
+                graph_plan_ = false;
+                line_explore_ = false;
+            }
             i++;
         }
 
-        // Ondrej's self-TODO: try going along a line first
 
         if(!planning_successful) {
             pose_goal = goals.at(0);
-            std::cout << "Trying graph planning instead.\n";
+            std::cout <<("Trying graph planning instead.\n");
             planning_successful = graph_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
+            graph_plan_ = true;
+            if(line_explore_ || distTo(route_.back())<0.3){
+                std::cout <<("Already near graph target. Trying to head there along a line.");
+                line_explore_ = true;
+                // Go partially in that direction instead
+                double dist2goal = distTo(pose_goal);
+                pose_goal = ((dist2goal-local_range)/dist2goal)*robot_pos + (local_range/dist2goal)*pose_goal;
+                planning_successful = local_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
+            }
+
         }
 
         // If we have route targets (frontiers), work them off and send to position controller
