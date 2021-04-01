@@ -175,7 +175,8 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map) {
       // based on the other layers How can we figure out if an area is
       // traversable or not? YOu should fill with a 1.0 if it's traversable, and
       // -1.0 in the other case
-      if (traversability_.at("slope", *iterator) < 1) {
+      if ((traversability_.at("slope", *iterator) < 1) &&
+          (traversability_.at("elevation", *iterator) < 0.7)) {
         traversability_.at("traversability", *iterator) = 1.0;
       } else {
         traversability_.at("traversability", *iterator) = -1.0;
@@ -222,16 +223,20 @@ void WorldModelling::findCurrentFrontiers(const float &x, const float &y,
 
     for (int i = 0; i < how_many_angles; i++) {
       float angle_increment = twopi / how_many_angles;
+      float target_x = x + (frontier_radius * cos(i * angle_increment));
+      float target_y = y + (frontier_radius * sin(i * angle_increment));
       geometry_msgs::PointStamped frontier;
       frontier.header.stamp =
           time; // We store the time the frontier was created
       frontier.header.frame_id =
           input_fixed_frame_; // And the frame it's referenced to
       // And the position, of course
-      frontier.point.x = x + (frontier_radius * cos(i * angle_increment));
-      frontier.point.y = y + (frontier_radius * sin(i * angle_increment));
+      frontier.point.x = target_x;
+      frontier.point.y = target_y;
       // Finally we store it in the current frontiers' list
-      current_frontiers_.frontiers.push_back(frontier);
+      if (isLineTraversable(x, y, target_x, target_y)) {
+        current_frontiers_.frontiers.push_back(frontier);
+      }
     }
 
     first_frontier_ =
