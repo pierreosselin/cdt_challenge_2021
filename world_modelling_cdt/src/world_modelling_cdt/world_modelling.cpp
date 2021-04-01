@@ -175,8 +175,8 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map) {
       // based on the other layers How can we figure out if an area is
       // traversable or not? YOu should fill with a 1.0 if it's traversable, and
       // -1.0 in the other case
-      if ((traversability_.at("slope", *iterator) < 1) &&
-          (traversability_.at("elevation", *iterator) < 0.7)) {
+      if ((traversability_.at("slope", *iterator) < .3) &&
+          (traversability_.at("elevation", *iterator) < 0.5)) {
         traversability_.at("traversability", *iterator) = 1.0;
       } else {
         traversability_.at("traversability", *iterator) = -1.0;
