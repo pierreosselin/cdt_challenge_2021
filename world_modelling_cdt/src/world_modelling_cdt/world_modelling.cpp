@@ -128,9 +128,10 @@ bool WorldModelling::updateGraph(const float &x, const float &y, const float &th
             float dist = std::hypot(position.x - x, position.y - y);
 //            float dist = ((position.x - x) * (position.x - x)) + ((position.y - y) * (position.y - y));
             if(dist < neighborhood_tol || first_node_){
-            neighbor_id.data = node.id.data;
-            new_node.neighbors_id.push_back(neighbor_id);  // here we fill the neighbors of the new_node
-            node.neighbors_id.push_back(new_node.id);
+
+              neighbor_id.data = node.id.data;
+              new_node.neighbors_id.push_back(neighbor_id);  // here we fill the neighbors of the new_node
+              node.neighbors_id.push_back(new_node.id);
             }
         }
         // Finally add the new node to the graph (since all the properties are filled)
@@ -156,6 +157,8 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map)
 
     // Copy elevation from input grid map to traversability grid map
     traversability_.add("elevation", grid_map["elevation_inpainted"]);
+    // Copy slope from input grid map to traversability grid map
+    traversability_.add("slope", grid_map["slope_inpainted"]);
 
     // Create a new traversability layer with initial value 0.0
     traversability_.add("traversability", 0.0);
@@ -169,7 +172,7 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map)
             // TODO Fill the traversability at each position using some criterion based on the other layers
             // How can we figure out if an area is traversable or not?
             // YOu should fill with a 1.0 if it's traversable, and -1.0 in the other case
-            if (traversability_.at("elevation", *iterator) < 0.1) {
+            if (traversability_.at("slope", *iterator) < 0.1) {
                 traversability_.at("traversability", *iterator) = 1.0;
             } else {
                 traversability_.at("traversability", *iterator) = -1.0;
