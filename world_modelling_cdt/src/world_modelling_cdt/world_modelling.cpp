@@ -189,16 +189,16 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map) {
 
 bool WorldModelling::isLineTraversable(const float &x1, const float &y1,
                                        const float &x2, const float &y2) {
-    Eigen::Vector2d start(x1, y1);
-    Eigen::Vector2d end(x2, y2);
-    bool isTraversable = true;
-    for (grid_map::LineIterator iterator(traversability_, start, end);
-           !iterator.isPastEnd(); ++iterator) {
-        // if any point on the line is not traversable, the line isn't
-        if (traversability_.at("traversability", *iterator) < 0) {
-          return false;
-        }
+  Eigen::Vector2d start(x1, y1);
+  Eigen::Vector2d end(x2, y2);
+  bool isTraversable = true;
+  for (grid_map::LineIterator iterator(traversability_, start, end);
+       !iterator.isPastEnd(); ++iterator) {
+    // if any point on the line is not traversable, the line isn't
+    if (traversability_.at("traversability", *iterator) < 0) {
+      return false;
     }
+  }
   return isTraversable;
 }
 
@@ -217,7 +217,7 @@ void WorldModelling::findCurrentFrontiers(const float &x, const float &y,
     // In this example we set a frontier 5 meters ahead of the robot
     // The frontiers are expresed in the fixed frame
     const float twopi = 2 * 3.1416;
-    int how_many_angles = 8;
+    int how_many_angles = 24;
     float frontier_radius = distance_to_delete_frontier_ + 1.0;
 
     for (int i = 0; i < how_many_angles; i++) {
