@@ -294,6 +294,7 @@ void WorldModelling::updateFrontiers(const float &x, const float &y,
     }
   */
   // Finally, we update the frontiers using the current ones
+  current_frontiers_.frontiers.clear();
   frontiers_ = filtered_frontiers;
 }
 
