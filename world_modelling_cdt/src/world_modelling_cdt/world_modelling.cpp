@@ -189,17 +189,16 @@ void WorldModelling::computeTraversability(const grid_map::GridMap &grid_map) {
 
 bool WorldModelling::isLineTraversable(const float &x1, const float &y1,
                                        const float &x2, const float &y2) {
-
-  grid_map::Index start(x1, y1);
-  grid_map::Index end(x2, y2);
-  bool isTraversable = true;
-  for (grid_map::LineIterator iterator(traversability_, start, end);
-       !iterator.isPastEnd(); ++iterator) {
-    // if any point on the line is not traversable, the line isn't
-    if (traversability_.at("traversability", *iterator) < 0) {
-      return false;
+    Eigen::Vector2d start(x1, y1);
+    Eigen::Vector2d end(x2, y2);
+    bool isTraversable = true;
+    for (grid_map::LineIterator iterator(traversability_, start, end);
+           !iterator.isPastEnd(); ++iterator) {
+        // if any point on the line is not traversable, the line isn't
+        if (traversability_.at("traversability", *iterator) < 0) {
+          return false;
+        }
     }
-  }
   return isTraversable;
 }
 
