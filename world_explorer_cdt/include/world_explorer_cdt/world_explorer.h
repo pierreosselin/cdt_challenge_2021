@@ -104,6 +104,7 @@ private:
     void frontiersCallback(const cdt_msgs::Frontiers& in_frontiers);
     void graphCallback(const cdt_msgs::Graph& in_graph);
     void positionCtrlCallback(const std_msgs::Float32& in_status);
+    double dist(Eigen::Vector2d point1, Eigen::Vector2d point2);
     double frontierDist(const Eigen::Vector2d frontier_point);
 
     // Main loop

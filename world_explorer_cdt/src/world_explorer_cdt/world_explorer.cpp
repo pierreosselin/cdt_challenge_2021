@@ -146,6 +146,10 @@ void WorldExplorer::run()
     }
 
 }
+double WorldExplorer::dist(Eigen::Vector2d point1, Eigen::Vector2d point2) {
+    double dist = sqrt((point1 - point2).squaredNorm());
+    return dist;
+}
 
 double WorldExplorer::frontierDist(Eigen::Vector2d frontier_point){
     // Heuristic for identifying best frontier point to explore
@@ -158,8 +162,7 @@ double WorldExplorer::frontierDist(Eigen::Vector2d frontier_point){
 
 
     // First MVP - Euclidean distance to the point
-    double dist = sqrt((frontier_point - robot_pos).squaredNorm());
-    return dist;
+    return dist(frontier_point, robot_pos);
 }
 
 void WorldExplorer::plan()
@@ -194,16 +197,31 @@ void WorldExplorer::plan()
 //        }
 //        Eigen::Vector2d pose_goal = goals.at(std::distance(distances.begin(),std::min_element(distances.begin(), distances.end())));
 
-        Eigen::Vector2d pose_goal = goals.at(0);
+
 
         // Local Planner (RRT)
         // TODO Plan a route to the most suitable frontier
-        local_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
+        bool planning_successful = false;
+        int i = 0;
+        Eigen::Vector2d pose_goal;
+        while(!planning_successful && i < goals.size() && frontierDist(goals.at(i))<2.5){
+            pose_goal = goals.at(i);
+            std::cout << "Trying to do local planning toward point ";
+            std::cout << pose_goal;
+            std::cout << " ... ";
+            planning_successful = local_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
+            if(planning_successful)
+                std::cout << " succeeded.";
+            i++;
+        }
 
-        // some more reasoning to be done here....
+        // Ondrej's self-TODO: try going along a line first
 
-        // TODO Graph Planner
-//        graph_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
+        if(!planning_successful) {
+            pose_goal = goals.at(0);
+            std::cout << "Trying graph planning instead.\n";
+            planning_successful = graph_planner_.planPath(robot_x, robot_y, robot_theta, pose_goal, route_);
+        }
 
         // If we have route targets (frontiers), work them off and send to position controller
         if(route_.size() > 0)
